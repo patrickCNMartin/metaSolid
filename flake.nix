@@ -36,6 +36,7 @@
                             django
                             detect-secrets
                             ruff
+                            python-dotenv
                         ]);
                in {
                     devShells.default = pkgs.mkShell {
