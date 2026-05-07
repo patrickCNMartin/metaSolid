@@ -24,8 +24,8 @@
                         gettext
                         pandoc
                         which
-                        git
-                        python313;
+                        pre-commit
+                        git;
                 };
                
                 pythonDeps = pkgs.python313.withPackages (packages: with packages; [
@@ -34,7 +34,6 @@
                             polars
                             jsons
                             django
-                            pre-commit
                             detect-secrets
                             ruff
                         ]);
