@@ -1,0 +1,15 @@
+# Selective Git
+*
+!*/
+!.gitignore
+
+# Black List 
+.env
+.env.*
+
+# Whitelisted Assets #
+## Nix Files ##
+!flake.lock
+!flake.nix
+## Python ##
+!*.py
