@@ -34,6 +34,9 @@
                             polars
                             jsons
                             django
+                            pre-commit
+                            detect-secrets
+                            ruff
                         ]);
                in {
                     devShells.default = pkgs.mkShell {
