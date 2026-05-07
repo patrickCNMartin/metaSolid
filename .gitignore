@@ -8,6 +8,8 @@
 # Black List 
 .env
 .env.*
+security/.env
+security/.env.*
 
 # Whitelisted Assets #
 ## Nix Files ##
@@ -15,5 +17,3 @@
 !flake.nix
 ## Python ##
 !*.py
-
-!test.txt
