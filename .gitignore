@@ -5,11 +5,13 @@
 !.pre-commit-config.yaml
 !.secrets.baseline
 
-# Black List 
+# Black List - Make sure that variation on .env will be excluded no matter what 
 .env
 .env.*
 security/.env
 security/.env.*
+env/.env
+env/.env.*
 
 # Whitelisted Assets #
 ## Nix Files ##

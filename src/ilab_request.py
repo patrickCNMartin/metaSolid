@@ -1,9 +1,12 @@
 import os
 import argparse
 import requests
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+dotenv_path = Path.cwd() / "env" / ".env"
+load_dotenv(dotenv_path=dotenv_path)
+
 
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_DOMAIN")

@@ -5,7 +5,7 @@ repos:
     hooks:
       - id: ruff                  
         args: ['--fix']           
-      - id: ruff-format           
+      - id: ruff-format          
 
   # detect-secrets - secret scanning
   - repo: https://github.com/Yelp/detect-secrets
