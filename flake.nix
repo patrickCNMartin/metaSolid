@@ -37,6 +37,7 @@
                             detect-secrets
                             ruff
                             python-dotenv
+                            python-dateutil
                         ]);
                in {
                     devShells.default = pkgs.mkShell {
