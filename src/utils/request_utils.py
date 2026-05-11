@@ -3,7 +3,7 @@ import requests
 # -----------------------------------------------------------------------------#
 # IMPORT GENERIC UTILS
 # -----------------------------------------------------------------------------#
-from utils import trim_response
+from utils.utils import trim_response
 
 
 # -----------------------------------------------------------------------------#
@@ -72,14 +72,13 @@ def get_custom_forms(service_request, headers, form="all"):
             return form_list
 
 
-def get_request_info(service_request, as_text: bool = True) -> str | list:
+def get_request_info(
+    service_request,
+) -> str | list:
     state = service_request["state"]
     person = service_request["owner"]["name"]
     service_name = service_request["name"]
-    if as_text:
-        return f"STATE: {state} - PERSON: {person} - ID: {service_name}"
-    else:
-        return [state, person, service_name]
+    return {"State": state, "Person": person, "Service name": service_name}
 
 
 # Do we need to parse this if there is no requested info? I don't think so
@@ -89,7 +88,6 @@ def get_request_description(
     headers,
     field_label: list,
     form_name: str = "Meeting protocol",
-    as_text: bool = True,
 ):
     form = get_custom_forms(service_request, headers, form_name)
     # This is stupid and needs to be updated
@@ -98,13 +96,7 @@ def get_request_description(
 
     fields = form["fields"]
     # there is a cleaner way of doing this - but it will do for now.
-    field_info = [
-        {fi["label"]: fi["value"]} for fi in fields if fi["identifier"] in field_label
-    ]
-    if as_text:
-        field_info = [
-            f"{list(fi.keys())[0]}: {list(fi.values())[0]}\n" for fi in field_info
-        ]
-        return "".join(field_info)
-    else:
-        return field_info
+    field_info = {
+        fi["label"]: fi["value"] for fi in fields if fi["identifier"] in field_label
+    }
+    return field_info

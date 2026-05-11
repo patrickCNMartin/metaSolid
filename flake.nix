@@ -38,6 +38,7 @@
                             ruff
                             python-dotenv
                             python-dateutil
+                            python-pptx
                         ]);
                in {
                     devShells.default = pkgs.mkShell {

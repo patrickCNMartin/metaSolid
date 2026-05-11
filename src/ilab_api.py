@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------#
 import os
 
-# import argparse
+import argparse
 import json
 from pathlib import Path
 from dotenv import load_dotenv
@@ -11,13 +11,15 @@ from dotenv import load_dotenv
 # -----------------------------------------------------------------------------#
 # IMPORT GENERIC UTILS
 # -----------------------------------------------------------------------------#
-from utils import set_default_cutoff_date
-from request_utils import (
+from utils.utils import set_default_cutoff_date
+from utils.request_utils import (
     get_cores,
     get_request_description,
     get_request_info,
     select_service_request,
 )
+from reporting.format_convert import convert_sr_to_md
+from reporting.build_ppt import convert_md_to_ppt
 
 # -----------------------------------------------------------------------------#
 # SET ENV VARS
@@ -36,6 +38,7 @@ CORE_NAME = os.getenv("CORE_NAME")
 FROM_DATE = set_default_cutoff_date(int(os.getenv("YEARS_FROM_TODAY")))
 
 FILTER_CRITERIA = json.loads(os.getenv("FILTER_CRITERIA"))
+# Hardcoding this for now - but will move this to a more flaxeible approach later
 REQUEST_INFO = [
     "What_is_the_background_of_your_project_and_the_aim_with_the_analysis_",
     "What_type_of_samples_do_you_have__species__blood_or_tissue__pellet_or_gel__etc__",
@@ -51,31 +54,35 @@ headers = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json",
 }
+
+
 # -----------------------------------------------------------------------------#
 # DEFINE ARGUMENTS
 # -----------------------------------------------------------------------------#
-# def parse_args():
-#     parser = argparse.ArgumentParser(
-#         description="iLab API client",
-#         formatter_class=argparse.RawDescriptionHelpFormatter,
-#         epilog="""
-# examples:
-#   python ilab_api.py --action get_cores
-#         """,
-#     )
-#     parser.add_argument(
-#         "--action",
-#         choices=["get_cores"],
-#         required=True,
-#         help="Action to perform against the iLab API",
-#     )
-#     return parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="iLab API client",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+examples:
+  python ilab_api.py --outfile file_out.md
+        """,
+    )
+    parser.add_argument(
+        "--outfile",
+        required=False,
+        type=str,
+        help="Output file location - if none provide default names will be used in current directory.",
+    )
+
+    return parser.parse_args()
 
 
 # -----------------------------------------------------------------------------#
 # ENTRY
 # -----------------------------------------------------------------------------#
 if __name__ == "__main__":
+    args = parse_args()
     # need to update this function
     if CORE_ID is None or CORE_ID == "":
         CORE_ID = get_cores(BASE_URL, CORE_LOC, headers, "id")
@@ -93,9 +100,9 @@ if __name__ == "__main__":
         )
         for i in service_requests
     ]
-    concat_info = [
-        f"{ri} \n{rd}\n{REQ_DELIM}\n\n"
-        for ri, rd in zip(request_info, request_description)
-    ]
-    with open("file_out.txt", "w") as f:
-        f.writelines(concat_info)
+    if args.outfile is None:
+        outfile = "file_out"
+    else:
+        outfile = args.outfile
+    convert_sr_to_md(request_info, request_description, outfile)
+    convert_md_to_ppt(f"{outfile}.md", f"{outfile}.ppt")
