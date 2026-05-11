@@ -1,4 +1,5 @@
 import requests
+import re
 
 # -----------------------------------------------------------------------------#
 # IMPORT GENERIC UTILS
@@ -26,12 +27,15 @@ def get_cores(base_url, core_loc, headers, return_info: str = "all"):
             raise ValueError("Unknown information to return")
 
 
+# This is only for API selection and filtering
+# Very limited filtering logic
+# Could be worth creating a local database that will be used
 def select_service_request(
     base_url,
     core_loc,
     headers,
     core_id: int,
-    from_date: None | str = None,
+    date_range: None | dict = None,
     per_page=30,
     filters: dict = {},
 ) -> list:
@@ -40,8 +44,9 @@ def select_service_request(
     while True:
         print(f"Checking and Filtering page {page}")
         params = {"page": page, "per_page": per_page, **filters}
-        if from_date is not None:
-            params["from_date"] = from_date
+        if date_range is not None:
+            params["to_date"] = date_range["to_date"]
+            params["from_date"] = date_range["from_date"]
         filtered_response = requests.get(
             f"{base_url}/{core_loc}/{core_id}/service_requests.json",
             headers=headers,
@@ -54,6 +59,44 @@ def select_service_request(
         all_requests.extend(local_requests)
         page += 1
     return all_requests
+
+
+# simple quick function
+# will probably use a data base to run more complex commands
+# Allow AND OR stuff and potentially easier to push towards kantele later
+def filter_service_requests(service_requests: list, request_type: str = "new") -> list:
+    match request_type:
+        case "new":
+            service_requests = is_assgined(service_requests, assigned=False)
+        case "assigned":
+            service_requests = is_assgined(service_requests, assigned=True)
+        case _:
+            raise ValueError("Unknow request type")
+    service_requests = is_unlinked(service_requests)
+    service_requests = is_active(service_requests)
+    return service_requests
+
+
+def is_unlinked(service_request):
+    service_request = [sr for sr in service_request if not re.search("CID", sr["name"])]
+    return service_request
+
+
+def is_active(service_request):
+    service_request = [
+        sr
+        for sr in service_request
+        if sr["state"] not in ["cancelled", "research_draft"]
+    ]
+    return service_request
+
+
+def is_assgined(service_request, assigned: bool = False) -> list:
+    if assigned:
+        status = [sr for sr in service_request if sr["assigned_to"]]
+    else:
+        status = [sr for sr in service_request if not sr["assigned_to"]]
+    return status
 
 
 def get_custom_forms(service_request, headers, form="all"):
@@ -75,28 +118,64 @@ def get_custom_forms(service_request, headers, form="all"):
 def get_request_info(
     service_request,
 ) -> str | list:
-    state = service_request["state"]
+    state = service_request["state"].replace("_", " ")
     person = service_request["owner"]["name"]
     service_name = service_request["name"]
-    return {"State": state, "Person": person, "Service name": service_name}
+    assigned_to = service_request["assigned_to"]
+    if assigned_to:
+        assigned_to = assigned_to[0]
+    else:
+        assigned_to = "?"
+    return {
+        "State": state,
+        "Person": person,
+        "Service name": service_name,
+        "Assigned to": assigned_to,
+    }
 
 
-# Do we need to parse this if there is no requested info? I don't think so
-# Why bother filtering
+def get_form_request(form_name: str = "Start-up Meeting Request form"):
+    match form_name:
+        case "new":
+            return "Start-up Meeting Request form"
+        case "assigned":
+            return "Meeting protocol"
+        case _:
+            raise ValueError("Unknown form request")
+    return 0
+
+
+def get_field_labels(form_name: str = "new"):
+    match form_name:
+        case "new":
+            return [
+                "What_is_the_background_of_your_project_and_the_aim_with_the_analysis_",
+                "What_type_of_samples_do_you_have__species__blood_or_tissue__pellet_or_gel__etc__",
+                "how_many_samples_would_you_analyze_",
+            ]
+        case "assigned":
+            return ["BACKGROUND_OF_PROJECT_", "TYPE_OF_SAMPLES", "Number_of_samples_"]
+        case _:
+            raise ValueError("Unknown form request")
+    return 0
+
+
 def get_request_description(
     service_request,
     headers,
-    field_label: list,
-    form_name: str = "Meeting protocol",
+    request_type: str = "new",
 ):
+    form_name = get_form_request(request_type)
+    field_labels = get_field_labels(request_type)
     form = get_custom_forms(service_request, headers, form_name)
-    # This is stupid and needs to be updated
+
     if len(form) == 0:
         return "No Description \n"
 
     fields = form["fields"]
     # there is a cleaner way of doing this - but it will do for now.
     field_info = {
-        fi["label"]: fi["value"] for fi in fields if fi["identifier"] in field_label
+        fi["label"]: fi["value"] for fi in fields if fi["identifier"] in field_labels
     }
+
     return field_info

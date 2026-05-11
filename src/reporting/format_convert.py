@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------#
 # IMPORT LIBS
 # -----------------------------------------------------------------------------#
-
+import os
 
 # -----------------------------------------------------------------------------#
 # SET GLOBAL VARS
@@ -23,10 +23,20 @@ SHORTHAND_DESC = ["Background", "Type of sample", "Number of Samples"]
 # -----------------------------------------------------------------------------#
 
 
-def convert_to_md(sr: dict, sd: dict):
+def request_type_title(request_type):
+    match request_type:
+        case "new":
+            return "# New Service Requests \n"
+        case "assigned":
+            return "# Assigned Requets \n"
+        case _:
+            raise ValueError("Unknown request type")
+    return 0
+
+
+def convert_to_md(sr: dict, sd: dict, request_type: str):
     # This is also stupid since we will add other types later
-    title = "# Service Requests \n"
-    # import pdb; pdb.set_trace()
+    title = request_type_title(request_type)
     subtitle = (
         "## " + " - ".join([f"**{key}**: {val}" for key, val in sr.items()]) + "\n"
     )
@@ -43,11 +53,15 @@ def convert_to_md(sr: dict, sd: dict):
 
 
 def convert_sr_to_md(
-    service_request: list, service_description: list, outfile: str = "file_out.md"
+    service_request: list,
+    service_description: list,
+    request_type: str,
+    outfile: str = "file_out",
 ):
-    print(f"Convert to md: {outfile}.md")
-    with open(f"{outfile}.md", "w") as f:
+    mode = "a" if os.path.exists(f"{outfile}.md") else "w"
+    print(f"{'Appending to' if mode == 'a' else 'Creating'} md: {outfile}.md")
+    with open(f"{outfile}.md", mode) as f:
         for sr, sd in zip(service_request, service_description):
-            md_local = convert_to_md(sr, sd)
+            md_local = convert_to_md(sr, sd, request_type)
             f.writelines(md_local)
     return 0

@@ -11,9 +11,10 @@ from dotenv import load_dotenv
 # -----------------------------------------------------------------------------#
 # IMPORT GENERIC UTILS
 # -----------------------------------------------------------------------------#
-from utils.utils import set_default_cutoff_date
+from utils.utils import set_default_cutoff_dates, convert_date
 from utils.request_utils import (
     get_cores,
+    filter_service_requests,
     get_request_description,
     get_request_info,
     select_service_request,
@@ -28,29 +29,26 @@ dotenv_path = Path.cwd() / "env" / ".env"
 load_dotenv(dotenv_path=dotenv_path)
 
 
-API_KEY = os.getenv("API_KEY")
-BASE_URL = os.getenv("BASE_DOMAIN")
-CORE_LOC = os.getenv("DEFAULT_CORE_LOCATION")
+API_KEY = os.getenv("API_KEY", "")
+BASE_URL = os.getenv("BASE_DOMAIN", "")
+CORE_LOC = os.getenv("DEFAULT_CORE_LOCATION", "v1/cores")
 
-CORE_ID = os.getenv("CORE_ID")
-CORE_NAME = os.getenv("CORE_NAME")
+CORE_ID = os.getenv("CORE_ID", "")
+CORE_NAME = os.getenv("CORE_NAME", "")
 
-FROM_DATE = set_default_cutoff_date(int(os.getenv("YEARS_FROM_TODAY")))
+TO_DATE = os.getenv("TO_DATE", "today")
+converted_date = convert_date(os.getenv("FROM_DATE", "7days"))
+DATE_RANGE = set_default_cutoff_dates(TO_DATE, converted_date)
 
-FILTER_CRITERIA = json.loads(os.getenv("FILTER_CRITERIA"))
-# Hardcoding this for now - but will move this to a more flaxeible approach later
-REQUEST_INFO = [
-    "What_is_the_background_of_your_project_and_the_aim_with_the_analysis_",
-    "What_type_of_samples_do_you_have__species__blood_or_tissue__pellet_or_gel__etc__",
-    "how_many_samples_would_you_analyze_",
-]
-PROTOCOL_INFO = ["BACKGROUND_OF_PROJECT_", "TYPE_OF_SAMPLES", "Number_of_samples_"]
+FILTER_CRITERIA = json.loads(os.getenv("FILTER_CRITERIA", {}))
 
-REQ_DELIM = "===================================================================="
+rt = os.getenv("REQUEST_TYPE")
+REQUEST_TYPE = json.loads(rt) if rt else ["new"]
+
 # -----------------------------------------------------------------------------#
 # DEFINE ILAB HEADERS
 # -----------------------------------------------------------------------------#
-headers = {
+HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json",
 }
@@ -85,24 +83,35 @@ if __name__ == "__main__":
     args = parse_args()
     # need to update this function
     if CORE_ID is None or CORE_ID == "":
-        CORE_ID = get_cores(BASE_URL, CORE_LOC, headers, "id")
-
+        CORE_ID = get_cores(BASE_URL, CORE_LOC, HEADERS, "id")
+    # API filtering is limited
+    # Function does addition filtering based on post request json
     service_requests = select_service_request(
-        BASE_URL, CORE_LOC, headers, CORE_ID, FROM_DATE, filters=FILTER_CRITERIA
+        BASE_URL, CORE_LOC, HEADERS, CORE_ID, DATE_RANGE, filters=FILTER_CRITERIA
     )
-    request_info = [get_request_info(i) for i in service_requests]
-    request_description = [
-        get_request_description(
-            i,
-            headers,
-            field_label=REQUEST_INFO,
-            form_name="Start-up Meeting Request form",
-        )
-        for i in service_requests
-    ]
-    if args.outfile is None:
-        outfile = "file_out"
-    else:
-        outfile = args.outfile
-    convert_sr_to_md(request_info, request_description, outfile)
+    with open("service_req.json", "w") as f:
+        json.dump(service_requests, f)
+    # Loop over request types to create a multi-type report
+    # This will append to the same md file
+    for rt in REQUEST_TYPE:
+        # import pdb;pdb.set_trace()
+        current_requests = filter_service_requests(service_requests, rt)
+        # Pull information from request
+        request_info = [get_request_info(i) for i in current_requests]
+        # Pull Desription
+        request_description = [
+            get_request_description(
+                i,
+                HEADERS,
+                rt,
+            )
+            for i in current_requests
+        ]
+        # Building report by converting to md then to ppt or which ever format is required
+        if args.outfile is None:
+            outfile = "file_out"
+        else:
+            outfile = args.outfile
+        convert_sr_to_md(request_info, request_description, rt, outfile)
+
     convert_md_to_ppt(f"{outfile}.md", f"{outfile}.ppt")
