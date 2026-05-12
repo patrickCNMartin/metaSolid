@@ -68,9 +68,21 @@ examples:
     )
     parser.add_argument(
         "--outfile",
-        required=False,
+        required=True,
         type=str,
         help="Output file location - if none provide default names will be used in current directory.",
+    )
+    parser.add_argument(
+        "--build_report",
+        required=True,
+        type=bool,
+        help="Should the full report be built? Used for testing purposes",
+    )
+    parser.add_argument(
+        "--export_request",
+        required=True,
+        type=bool,
+        help="Export the full API request as json",
     )
 
     return parser.parse_args()
@@ -84,34 +96,38 @@ if __name__ == "__main__":
     # need to update this function
     if CORE_ID is None or CORE_ID == "":
         CORE_ID = get_cores(BASE_URL, CORE_LOC, HEADERS, "id")
+    # Building report by converting to md then to ppt or which ever format is required
+    if args.outfile is None:
+        outfile = "file_out"
+    else:
+        outfile = args.outfile
     # API filtering is limited
     # Function does addition filtering based on post request json
     service_requests = select_service_request(
         BASE_URL, CORE_LOC, HEADERS, CORE_ID, DATE_RANGE, filters=FILTER_CRITERIA
     )
-    with open("service_req.json", "w") as f:
-        json.dump(service_requests, f)
-    # Loop over request types to create a multi-type report
-    # This will append to the same md file
-    for rt in REQUEST_TYPE:
-        # import pdb;pdb.set_trace()
-        current_requests = filter_service_requests(service_requests, rt)
-        # Pull information from request
-        request_info = [get_request_info(i) for i in current_requests]
-        # Pull Desription
-        request_description = [
-            get_request_description(
-                i,
-                HEADERS,
-                rt,
-            )
-            for i in current_requests
-        ]
-        # Building report by converting to md then to ppt or which ever format is required
-        if args.outfile is None:
-            outfile = "file_out"
-        else:
-            outfile = args.outfile
-        convert_sr_to_md(request_info, request_description, rt, outfile)
+    # Not ideal but for now I don't care to much about it
+    if args.export_request:
+        with open(f"{outfile}.json", "w") as f:
+            json.dump(service_requests, f)
+    else:
+        # Loop over request types to create a multi-type report
+        # This will append to the same md file
+        for rt in REQUEST_TYPE:
+            # import pdb;pdb.set_trace()
+            current_requests = filter_service_requests(service_requests, rt)
+            # Pull information from request
+            request_info = [get_request_info(i) for i in current_requests]
+            # Pull Desription
+            request_description = [
+                get_request_description(
+                    i,
+                    HEADERS,
+                    rt,
+                )
+                for i in current_requests
+            ]
 
-    convert_md_to_ppt(f"{outfile}.md", f"{outfile}.ppt")
+            convert_sr_to_md(request_info, request_description, rt, outfile)
+        if args.build_report:
+            convert_md_to_ppt(f"{outfile}.md", f"{outfile}.ppt")

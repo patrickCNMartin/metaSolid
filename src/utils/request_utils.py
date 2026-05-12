@@ -70,6 +70,8 @@ def filter_service_requests(service_requests: list, request_type: str = "new") -
             service_requests = is_assgined(service_requests, assigned=False)
         case "assigned":
             service_requests = is_assgined(service_requests, assigned=True)
+        case "all":
+            service_requests = service_requests
         case _:
             raise ValueError("Unknow request type")
     service_requests = is_unlinked(service_requests)
@@ -140,6 +142,8 @@ def get_form_request(form_name: str = "Start-up Meeting Request form"):
             return "Start-up Meeting Request form"
         case "assigned":
             return "Meeting protocol"
+        case "all":
+            return "all"
         case _:
             raise ValueError("Unknown form request")
     return 0
