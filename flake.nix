@@ -32,6 +32,11 @@
                             requests
                             pandas
                             polars
+                            numpy
+                            seaborn
+                            matplotlib
+                            jupyterlab
+                            ipython
                             jsons
                             django
                             detect-secrets
