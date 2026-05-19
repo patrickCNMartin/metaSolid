@@ -74,14 +74,12 @@ examples:
     )
     parser.add_argument(
         "--build_report",
-        required=True,
-        type=bool,
+        action="store_true",
         help="Should the full report be built? Used for testing purposes",
     )
     parser.add_argument(
         "--export_request",
-        required=True,
-        type=bool,
+        action="store_true",
         help="Export the full API request as json",
     )
 
@@ -93,6 +91,7 @@ examples:
 # -----------------------------------------------------------------------------#
 if __name__ == "__main__":
     args = parse_args()
+    print(args)
     # need to update this function
     if CORE_ID is None or CORE_ID == "":
         CORE_ID = get_cores(BASE_URL, CORE_LOC, HEADERS, "id")

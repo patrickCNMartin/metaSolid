@@ -45,6 +45,7 @@
                             python-dotenv
                             python-dateutil
                             python-pptx
+                            scipy
                         ]);
                in {
                     devShells.default = pkgs.mkShell {
