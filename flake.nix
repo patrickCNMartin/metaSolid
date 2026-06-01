@@ -59,7 +59,7 @@
 
                             if [ ! -f "$KERNEL_STAMP" ] || [ "$(cat $KERNEL_STAMP)" != "$NIX_PYTHON" ]; then
                                 echo "Registering Jupyter kernel..."
-                                ${pythonDeps}/bin/python -m ipykernel install --user --name ilab-nix --display-name "iLAB Nix (3.13)"
+                                ${pythonDeps}/bin/python -m ipykernel install --user --name metasolid-nix --display-name "metaSolid Nix (3.13)"
                                 echo "$NIX_PYTHON" > "$KERNEL_STAMP"
                             fi
 
