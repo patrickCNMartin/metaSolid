@@ -1,5 +1,5 @@
 {
-    description = "iLAB API integration testing environment";
+    description = "Meta Data Consolidation - IDS - METASOLID";
     inputs = {
         nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
         flake-utils.url = "github:numtide/flake-utils";
@@ -51,7 +51,7 @@
                     devShells.default = pkgs.mkShell {
                         buildInputs = core_deps ++ [pythonDeps];
                         shellHook = ''
-                            echo "====> iLAB dev Shell <===="
+                            echo "====> metaSolid dev Shell <===="
                             echo "Activating python environment"
 
                             KERNEL_STAMP=".nix-kernel-stamp"
@@ -63,7 +63,7 @@
                                 echo "$NIX_PYTHON" > "$KERNEL_STAMP"
                             fi
 
-                            echo "Dev shell ready!"
+                            echo "METASOLID shell ready!"
                         '';
                     };
                }
