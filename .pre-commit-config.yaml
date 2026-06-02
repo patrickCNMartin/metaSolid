@@ -5,7 +5,8 @@ repos:
     hooks:
       - id: ruff                  
         args: ['--fix']           
-      - id: ruff-format          
+      - id: ruff-format
+    default_stages: [pre-push]      
 
   # detect-secrets - secret scanning
   - repo: https://github.com/Yelp/detect-secrets
@@ -13,3 +14,4 @@ repos:
     hooks:
       - id: detect-secrets
         args: ['--baseline', 'security/.secrets.baseline']
+    default_stages: [pre-push]
