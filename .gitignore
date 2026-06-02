@@ -12,6 +12,7 @@ security/.env
 security/.env.*
 env/.env
 env/.env.*
+.venv/
 
 # Whitelisted Assets #
 ## Nix Files ##
