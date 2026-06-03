@@ -39,6 +39,7 @@
 
                     shellHook = ''
                         echo "====> metaSolid dev Shell <===="
+                    
 
                         # Point uv at the nix python so it doesn't download its own
                         export UV_PYTHON="${pythonBase}/bin/python3"
@@ -70,13 +71,45 @@
                                 --display-name "metaSolid Nix (3.13)"
                             echo "$VENV_HASH" > "$KERNEL_STAMP"
                         fi
+                        ##### NOTE ######
+                        # This section should be cleaned up and less hardcoded
+                        # Building ollama dictory
+                        if [! -d "ollama-models" ]; then
+                            mkdir -p ollama-models/{logs}
+                        fi
                         
                         if ! pgrep -x "ollama" > /dev/null; then
                             echo "Starting ollama serve..."
-                            ollama serve &> /tmp/ollama.log &
-                            disown
+                            echo "Keep Ollama alive for 4 hours of inactivity"
+                            OLLAMA_KEEP_ALIVE=4h ollama serve &> ollama-models/logs/ollama.log 2>&1 disown
+                            echo "Pull embeds and LLM"
+                            ollama pull nomic-embed-text
+                            ollama pull qwen3.5:9b
+                            if [! -f ollama-models/qwen.modelfile]; then
+                                echo "Initializing Modelfile
+                                cat > ~/ollama-models/qwen.modelfile << 'EOF'
+                                FROM qwen3.5:9b
+
+                                # 16K context is a practical balance for 24GB.
+                                # Reduce to 8192 if Activity Monitor shows persistent memory pressure.
+                                PARAMETER num_ctx 16384
+
+                                # Lower temperature produces more deterministic output, preferable for code generation.
+                                PARAMETER temperature 0.2
+
+                                # Penalises repetition. Reduces looping behaviour in smaller models.
+                                PARAMETER repeat_penalty 1.1
+                                EOF
+                                ollama create qwen-cline -f ollama/qwen.modelfile
+                            fi
                         fi
-                        echo "Remeber to pull the embeds: ollama pull nomic-embed-text"
+
+
+                        echo "Check Availble models with: ollama ls
+                        echo "Check Running models with: ollama ps
+                        echo "Embeds: ollama pull nomic-embed-text"
+                        echo "Qwen3.5 9B: ollala pull qwen3.5:9b"
+                        echo "Model file located in ollama-models/
                         echo "METASOLID shell ready!"
                     '';
                 };
