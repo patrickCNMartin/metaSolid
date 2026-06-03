@@ -74,42 +74,36 @@
                         ##### NOTE ######
                         # This section should be cleaned up and less hardcoded
                         # Building ollama dictory
-                        if [! -d "ollama-models" ]; then
+                        echo "OOOOLLLLAMAMAMAMA"
+                        if [ ! -d "ollama-models" ]; then
                             mkdir -p ollama-models/{logs}
                         fi
-                        
+                        echo "Launching lamas"
                         if ! pgrep -x "ollama" > /dev/null; then
                             echo "Starting ollama serve..."
-                            echo "Keep Ollama alive for 4 hours of inactivity"
-                            OLLAMA_KEEP_ALIVE=4h ollama serve &> ollama-models/logs/ollama.log 2>&1 disown
-                            echo "Pull embeds and LLM"
+                            OLLAMA_KEEP_ALIVE=4h ollama serve >> ollama-models/logs/ollama.log 2>&1 &
+                            disown
+
                             ollama pull nomic-embed-text
                             ollama pull qwen3.5:9b
-                            if [! -f ollama-models/qwen.modelfile]; then
-                                echo "Initializing Modelfile
-                                cat > ~/ollama-models/qwen.modelfile << 'EOF'
-                                FROM qwen3.5:9b
 
-                                # 16K context is a practical balance for 24GB.
-                                # Reduce to 8192 if Activity Monitor shows persistent memory pressure.
-                                PARAMETER num_ctx 16384
-
-                                # Lower temperature produces more deterministic output, preferable for code generation.
-                                PARAMETER temperature 0.2
-
-                                # Penalises repetition. Reduces looping behaviour in smaller models.
-                                PARAMETER repeat_penalty 1.1
-                                EOF
-                                ollama create qwen-cline -f ollama/qwen.modelfile
+                            if [ ! -f ollama-models/qwen.modelfile ]; then
+                                echo "Initializing Modelfile"
+                                cat > ollama-models/qwen.modelfile << 'EOF'
+FROM qwen3.5:9b
+PARAMETER num_ctx 16384
+PARAMETER temperature 0.2
+PARAMETER repeat_penalty 1.1
+EOF
+                                ollama create qwen-cline -f ollama-models/qwen.modelfile
                             fi
                         fi
-
-
-                        echo "Check Availble models with: ollama ls
-                        echo "Check Running models with: ollama ps
+                        trap 'pkill -x ollama' EXIT INT TERM
+                        echo "Check available models with: ollama ls"
+                        echo "Check running models with: ollama ps"
                         echo "Embeds: ollama pull nomic-embed-text"
-                        echo "Qwen3.5 9B: ollala pull qwen3.5:9b"
-                        echo "Model file located in ollama-models/
+                        echo "Qwen3.5 9B: ollama pull qwen3.5:9b"
+                        echo "Modelfile located in ollama-models/"
                         echo "METASOLID shell ready!"
                     '';
                 };
