@@ -1,0 +1,48 @@
+[project]
+name = "metasolid"
+version = "0.1.0"
+description = "Meta Data Consolidation - IDS - METASOLID"
+requires-python = ">=3.13"
+
+dependencies = [
+    # Data
+    "pandas",
+    "polars",
+    "numpy",
+    "scipy",
+    "python-dateutil",
+
+    # Reporting & Figures
+    "matplotlib",
+    "seaborn",
+    "python-pptx",
+
+    # LLM
+    "ollama",
+
+    # Utilities
+    "requests",
+    "python-dotenv",
+    "jsons",
+]
+
+[project.optional-dependencies]
+dev = [
+    "jupyterlab",
+    "ipython",
+    "ipykernel",
+    "ruff",
+    "detect-secrets",
+    "pre-commit",
+]
+
+[build-system]
+requires = ["setuptools>=65", "wheel", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
