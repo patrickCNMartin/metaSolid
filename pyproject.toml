@@ -19,6 +19,9 @@ dependencies = [
 
     # LLM
     "ollama",
+    "transformers",
+    "torch",
+    "vllm",
 
     # Utilities
     "requests",
