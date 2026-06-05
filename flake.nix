@@ -74,15 +74,13 @@
                         ##### NOTE ######
                         # This section should be cleaned up and less hardcoded
                         # Building ollama dictory
-                        echo "OOOOLLLLAMAMAMAMA"
                         if [ ! -d "ollama-models" ]; then
                             mkdir -p ollama-models/{logs}
                         fi
-                        echo "Launching lamas"
+
                         if ! pgrep -x "ollama" > /dev/null; then
                             echo "Starting ollama serve..."
-                            OLLAMA_KEEP_ALIVE=4h ollama serve >> ollama-models/logs/ollama.log 2>&1 &
-                            disown
+                            ollama serve >> ollama-models/logs/ollama.log 2>&1 & disown
 
                             ollama pull nomic-embed-text
                             ollama pull qwen3.5:4b
@@ -92,17 +90,17 @@
                                 cat > ollama-models/qwen.modelfile << 'EOF'
 FROM qwen3.5:4b
 PARAMETER num_ctx 8000
-PARAMETER temperature 0.2
+PARAMETER temperature 0.7
 PARAMETER repeat_penalty 1.1
 EOF
-                                ollama create qwen-cline -f ollama-models/qwen.modelfile
+                                ollama create qwen:v1.0 -f ollama-models/qwen.modelfile
                             fi
                         fi
                         trap 'pkill -x ollama' EXIT INT TERM
                         echo "Check available models with: ollama ls"
                         echo "Check running models with: ollama ps"
                         echo "Embeds: ollama pull nomic-embed-text"
-                        echo "Qwen3.5 9B: ollama pull qwen3.5:4b"
+                        echo "Qwen3.5 4B: ollama pull qwen3.5:4b"
                         echo "Modelfile located in ollama-models/"
                         echo "METASOLID shell ready!"
                     '';
