@@ -85,12 +85,12 @@
                             disown
 
                             ollama pull nomic-embed-text
-                            ollama pull qwen3.5:9b
+                            ollama pull qwen3.5:4b
 
                             if [ ! -f ollama-models/qwen.modelfile ]; then
                                 echo "Initializing Modelfile"
                                 cat > ollama-models/qwen.modelfile << 'EOF'
-FROM qwen3.5:9b
+FROM qwen3.5:4b
 PARAMETER num_ctx 8000
 PARAMETER temperature 0.2
 PARAMETER repeat_penalty 1.1
