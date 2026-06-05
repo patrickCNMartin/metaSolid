@@ -25,7 +25,9 @@ from reporting.build_ppt import convert_md_to_ppt
 # -----------------------------------------------------------------------------#
 # SET ENV VARS
 # -----------------------------------------------------------------------------#
-dotenv_path = Path.cwd() / "env" / ".env"
+#dotenv_path = Path.cwd() / "env" / ".ilab.env"
+# Yes I know this is hardcoded - will change later
+dotenv_path = (Path(__file__).resolve().parent / "../../../env/.env").resolve()
 load_dotenv(dotenv_path=dotenv_path)
 
 
@@ -37,10 +39,12 @@ CORE_ID = os.getenv("CORE_ID", "")
 CORE_NAME = os.getenv("CORE_NAME", "")
 
 TO_DATE = os.getenv("TO_DATE", "today")
+
 converted_date = convert_date(os.getenv("FROM_DATE", "7days"))
 DATE_RANGE = set_default_cutoff_dates(TO_DATE, converted_date)
 
-FILTER_CRITERIA = json.loads(os.getenv("FILTER_CRITERIA", {}))
+
+FILTER_CRITERIA = json.loads(os.getenv("FILTER_CRITERIA", "{}"))
 
 rt = os.getenv("REQUEST_TYPE")
 REQUEST_TYPE = json.loads(rt) if rt else ["new"]
@@ -91,7 +95,6 @@ examples:
 # -----------------------------------------------------------------------------#
 if __name__ == "__main__":
     args = parse_args()
-    print(args)
     # need to update this function
     if CORE_ID is None or CORE_ID == "":
         CORE_ID = get_cores(BASE_URL, CORE_LOC, HEADERS, "id")
