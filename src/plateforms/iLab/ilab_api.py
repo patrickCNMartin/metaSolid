@@ -12,14 +12,14 @@ from dotenv import load_dotenv
 # IMPORT GENERIC UTILS
 # -----------------------------------------------------------------------------#
 from utils.utils import set_default_cutoff_dates, convert_date
-from utils.request_utils import (
+from plateforms.iLab.request_utils import (
     get_cores,
     filter_service_requests,
     get_request_description,
     get_request_info,
     select_service_request,
 )
-from reporting.format_convert import convert_sr_to_md
+from plateforms.iLab.format_convert import convert_sr_to_md
 from reporting.build_ppt import convert_md_to_ppt
 
 # -----------------------------------------------------------------------------#
