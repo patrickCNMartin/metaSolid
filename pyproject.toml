@@ -21,6 +21,7 @@ dependencies = [
     "ollama",
     "transformers",
     "torch",
+    "accelerate",
 
     # Utilities
     "requests",
