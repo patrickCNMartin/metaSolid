@@ -102,7 +102,7 @@ EOF
                         echo "Check available models with: ollama ls"
                         echo "Check running models with: ollama ps"
                         echo "Embeds: ollama pull nomic-embed-text"
-                        echo "Qwen3.5 9B: ollama pull qwen3.5:9b"
+                        echo "Qwen3.5 9B: ollama pull qwen3.5:4b"
                         echo "Modelfile located in ollama-models/"
                         echo "METASOLID shell ready!"
                     '';
