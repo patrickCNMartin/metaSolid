@@ -91,7 +91,7 @@
                                 echo "Initializing Modelfile"
                                 cat > ollama-models/qwen.modelfile << 'EOF'
 FROM qwen3.5:9b
-PARAMETER num_ctx 16384
+PARAMETER num_ctx 8000
 PARAMETER temperature 0.2
 PARAMETER repeat_penalty 1.1
 EOF
