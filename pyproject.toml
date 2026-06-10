@@ -8,7 +8,8 @@ dependencies = [
     # Data
     "numpy",
     "scipy",
-    "scikit-learn"
+    "scikit-learn",
+    "umap-learn",
     "python-dateutil",
     "zarr",
     "dask",
@@ -27,6 +28,7 @@ dependencies = [
     "requests",
     "python-dotenv",
     "jsons",
+    "matplotlib",
 ]
 
 [project.optional-dependencies]

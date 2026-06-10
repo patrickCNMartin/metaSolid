@@ -10,7 +10,7 @@ from synthetic.synthetic_utils import (generate_label, ablate_metadata,flatten_d
 # CONFIG
 #-----------------------------------------------------------------------------#
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
-MODEL_NAME = os.getenv("MODEL_NAME", "qwen:v1.0")
+GEN_MODEL = os.getenv("MODEL", "qwen:v1.0")
 #-----------------------------------------------------------------------------#
 # UTIL FUNCTIONS
 #-----------------------------------------------------------------------------#
@@ -30,7 +30,7 @@ examples:
         help="Location where meta data is stored.",
     )
     parser.add_argument(
-        "--out",
+        "--output",
         required=True,
         type=str,
         help="Location where synthetic data should be saved.",
@@ -41,16 +41,15 @@ examples:
 #-----------------------------------------------------------------------------#
 if __name__ == "__main__":
     args = parse_args()
-    print(args)
     # Get provider specific generator function
     # This generator function is essentially what wraps the LLM api into a single
     # Function call. It gets a prompt and bool (return json on true).
     # This function is then parse to what ever subfunction needs a generator.
-    print(f'Using:{LLM_PROVIDER} with {MODEL_NAME}')
-    generator_func = build_generator(provider = LLM_PROVIDER, model_name = MODEL_NAME)
+    print(f'Using:{LLM_PROVIDER} with {GEN_MODEL}')
+    generator_func = build_generator(provider = LLM_PROVIDER, model_name = GEN_MODEL)
     # Loading previously computed fuzzy request just in case.
-    if os.path.exists(f'{args.out}/fuzzy_service_request.json'):
-        with open(f'{args.out}/fuzzy_service_request.json') as f:
+    if os.path.exists(f'{args.output}/fuzzy_service_request.json'):
+        with open(f'{args.output}/fuzzy_service_request.json') as f:
             fuzzy_requests = json.load(f)
     else :
         with open(args.metadata) as f:
@@ -64,12 +63,12 @@ if __name__ == "__main__":
             for req in requests
         ]
         
-        with open(f'{args.out}/fuzzy_service_request.json', 'w') as f:
+        with open(f'{args.output}/fuzzy_service_request.json', 'w') as f:
             json.dump(fuzzy_requests,f)
     
     
     
     ablated_requests = [ablate_metadata(fr, 0.1) for fr in fuzzy_requests]
     
-    with open(f'{args.out}/fuzzy_ablated_requests.json', 'w') as f:
+    with open(f'{args.output}/fuzzy_ablated_requests.json', 'w') as f:
         json.dump(ablated_requests, f)
