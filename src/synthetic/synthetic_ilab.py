@@ -3,8 +3,9 @@
 #-----------------------------------------------------------------------------#
 import os
 import argparse
+import json
 from providers.generators import build_generator
-from synthetic.synthetic_utils import generate_label
+from synthetic.synthetic_utils import (generate_label, ablate_metadata,flatten_dict)
 #-----------------------------------------------------------------------------#
 # CONFIG
 #-----------------------------------------------------------------------------#
@@ -34,17 +35,41 @@ examples:
         type=str,
         help="Location where synthetic data should be saved.",
     )
+    return parser.parse_args() 
 #-----------------------------------------------------------------------------#
 # GENERATE SYNTHETIC ILAB META DATA
 #-----------------------------------------------------------------------------#
 if __name__ == "__main__":
     args = parse_args()
-    
+    print(args)
     # Get provider specific generator function
-    print(f'Using:LLM_PROVIDER')
-    print(MODEL_NAME)
+    # This generator function is essentially what wraps the LLM api into a single
+    # Function call. It gets a prompt and bool (return json on true).
+    # This function is then parse to what ever subfunction needs a generator.
+    print(f'Using:{LLM_PROVIDER} with {MODEL_NAME}')
     generator_func = build_generator(provider = LLM_PROVIDER, model_name = MODEL_NAME)
+    # Loading previously computed fuzzy request just in case.
+    if os.path.exists(f'{args.out}/fuzzy_service_request.json'):
+        with open(f'{args.out}/fuzzy_service_request.json') as f:
+            fuzzy_requests = json.load(f)
+    else :
+        with open(args.metadata) as f:
+            metadata = json.load(f)
 
-    # Testing some silly label stuff
-    new_labs = generate_label(generator_func,"silly",10)
-    print(new_labs)
+        # First we flatten the request before parsing it to the generator functions.
+        requests = [flatten_dict(md) for md in metadata]
+        requests = requests[:5] # only take 5 requests for development purposes
+        fuzzy_requests = [
+            {generate_label(generator_func, k, 1): v for k, v in req.items()}
+            for req in requests
+        ]
+        
+        with open(f'{args.out}/fuzzy_service_request.json', 'w') as f:
+            json.dump(fuzzy_requests,f)
+    
+    
+    
+    ablated_requests = [ablate_metadata(fr, 0.1) for fr in fuzzy_requests]
+    
+    with open(f'{args.out}/fuzzy_ablated_requests.json', 'w') as f:
+        json.dump(ablated_requests, f)

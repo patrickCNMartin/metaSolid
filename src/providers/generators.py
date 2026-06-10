@@ -1,16 +1,13 @@
 #-----------------------------------------------------------------------------#
 # IMPORT LIBS
 #-----------------------------------------------------------------------------#
-import json
-import ollama
-from typing import Callable
 from .ollama_api import ollama_generator
 #-----------------------------------------------------------------------------#
 # FUNCTIONS
 #-----------------------------------------------------------------------------#
 
 
-# Setting default 
+# Setting default base on what I use for now but will clean it up later
 def build_generator(provider:str = "ollama", model_name:str="qwen:v1.0"):
     match provider.lower():
         case "ollama":
