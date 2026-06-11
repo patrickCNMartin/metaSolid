@@ -87,7 +87,7 @@
                         # Ollama handles that check. 
                         ollama pull nomic-embed-text
                         ollama pull qwen2.5:7b
-                        ollama pull gemma4:12b
+                        ollama pull gemma4:12b 
 
                         # Initalize Model File if they are not present
                         # Can be customized later but he autobuild the "defaults"
