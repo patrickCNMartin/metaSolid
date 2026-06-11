@@ -26,21 +26,25 @@
                 };
 
                 # Ollama runtime for dev phase
-                llm_deps = builtins.attrValues {
-                    inherit (pkgs) ollama;
-                };
+                # This is remove for now because of how nix handles the new xcode requirement with 
+                # metalToolChain
+                # Currently being fixed - but not working yet
+                # llm_deps = builtins.attrValues {
+                #     inherit (pkgs) ollama;
+                # };
+                
                 # python only - not sure if i want to add packages here or not
                 pythonBase = pkgs.python313;
 
             in {
                 
                 devShells.default = pkgs.mkShell {
-                    buildInputs = core_deps ++ llm_deps ++ [ pythonBase ];
+                    # darwin_frameworks will evaluate to [] on Linux, keeping it perfectly pure and agnostic
+                    buildInputs = core_deps  ++ [ pythonBase ];
 
                     shellHook = ''
                         echo "====> metaSolid dev Shell <===="
                     
-
                         # Point uv at the nix python so it doesn't download its own
                         export UV_PYTHON="${pythonBase}/bin/python3"
                         export VIRTUAL_ENV=".venv"
@@ -77,7 +81,15 @@
                         if [ ! -d "ollama-models" ]; then
                             mkdir -p ollama-models/logs
                         fi
-                        # Start up Ollma if not already running
+
+                        if ! command -v ollama &> /dev/null; then
+                            echo "ollama not found — install via: brew install ollama on Mac"
+                            echo "Then run: ollama serve & disown"
+                            # Nix does not support this new metalToolChain require by the latest version of Ollama
+                            # To make a pure nix build use nixos-25.11 which calls Ollama 0.21.1
+                            # Don't forget to un-comment the llm-deps above and add them to the mkShell
+                        fi
+                        # Start up Ollama if not already running
                         # This should not be the case but just in case
                         if ! pgrep -x "ollama" > /dev/null; then
                             echo "====> Start Ollama <===="
@@ -89,7 +101,7 @@
                         ollama pull qwen2.5:7b
                         ollama pull gemma4:12b 
 
-                        # Initalize Model File if they are not present
+                        # Initialize Model File if they are not present
                         # Can be customized later but he autobuild the "defaults"
 
                         if [ ! -f ollama-models/qwen2.5_7B.modelfile ]; then
@@ -105,7 +117,7 @@ EOF
 
                         if [ ! -f ollama-models/gemma4_12B.modelfile ]; then
                                 echo "====> Initializing Gemma Modelfile <===="
-                                cat > ollama-models/gemma4_1B.modelfile << 'EOF'
+                                cat > ollama-models/gemma4_12B.modelfile << 'EOF'
 FROM gemma4:12b
 PARAMETER num_ctx 8000
 PARAMETER temperature 0.7
@@ -117,7 +129,7 @@ EOF
                         # Trap ollama to kill on nix session exit
                         trap 'pkill -x ollama' EXIT INT TERM
                         
-                        echo "====> Available Models through Ollama: <====\n"
+                        echo -e "====> Available Models through Ollama: <====\n"
                         ollama ls
                         echo "====> METASOLID shell ready! <===="
                     '';

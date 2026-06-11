@@ -10,7 +10,7 @@ from synthetic.synthetic_utils import (generate_label, ablate_metadata,flatten_d
 # CONFIG
 #-----------------------------------------------------------------------------#
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
-GEN_MODEL = os.getenv("MODEL", "qwen:v1.0")
+GEN_MODEL = os.getenv("MODEL", "qwen:v0.0.1")
 #-----------------------------------------------------------------------------#
 # UTIL FUNCTIONS
 #-----------------------------------------------------------------------------#

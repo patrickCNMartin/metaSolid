@@ -10,7 +10,10 @@ import numpy as np
 # FUNCTIONS
 #-----------------------------------------------------------------------------#
 
-def plot_dendrogram_from_clustering(unique_keys, model, threshold: float = 0.2):
+def plot_dendrogram_from_clustering(unique_keys, model, threshold: float = 0.2, ax = None):
+    if ax is None:
+        ax = plt.gca()
+
     counts = np.zeros(model.children_.shape[0])
     n_samples = len(unique_keys)
     for i, merge in enumerate(model.children_):
@@ -18,20 +21,16 @@ def plot_dendrogram_from_clustering(unique_keys, model, threshold: float = 0.2):
 
     Z = np.column_stack([model.children_, model.distances_, counts])
 
-    plt.figure(figsize=(12, 6))
-    dendrogram(Z, labels=unique_keys, color_threshold=threshold, leaf_rotation=90)
-    plt.tight_layout()
-    plt.show()
+    dendrogram(Z, labels=unique_keys, color_threshold=threshold, leaf_rotation=90, ax=ax)
+    return ax
 
 
-def plot_word_cloud_umap(unique_keys, embeddings, n_neighbors: int = 5, min_dist: float = 0.3):
+def plot_word_cloud_umap(unique_keys, embeddings, n_neighbors: int = 5, min_dist: float = 0.3, ax=None):
+    if ax is None:
+        ax = plt.gca()
     reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, metric='cosine')
     coords = reducer.fit_transform(embeddings)
-    
-    plt.figure(figsize=(12, 8))
-    plt.scatter(coords[:, 0], coords[:, 1], alpha=0.3, s=10)
+    ax.scatter(coords[:, 0], coords[:, 1], alpha=0.3, s=10)
     for label, (x, y) in zip(unique_keys, coords):
-        plt.text(x, y, label, fontsize=9, alpha=0.8)
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
+        ax.text(x, y, label, fontsize=9, alpha=0.8)
+    return ax

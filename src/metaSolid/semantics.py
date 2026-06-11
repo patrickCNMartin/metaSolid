@@ -16,19 +16,20 @@ def get_semantic_embeddings(prompts: list, model_name: str = "nomic-embed-text")
     return np.array(response['embeddings'], dtype=np.float32)
 
 
-def build_semantic_array(metadata: list):
+def build_semantic_array(metadata: list, model_name:str = "nomic-embed-text"):
     unique_keys = list({k for d in metadata for k in d.keys()})
-    embeddings = get_semantic_embeddings(unique_keys)
+    embeddings = get_semantic_embeddings(unique_keys, model_name = model_name)
     return unique_keys, embeddings
 
 
 def semantic_clusters(embeddings, threshold: float = 0.1):
     similarity_matrix = cosine_similarity(embeddings)
+    distance_matrix = np.clip(1 - similarity_matrix, 0, 2)
     clusters = AgglomerativeClustering(
         metric='precomputed',
         linkage='average',
         distance_threshold=threshold,
         n_clusters=None,
-        compute_distances=True  # <-- add this
-    ).fit(1 - similarity_matrix)
+        compute_distances=True
+    ).fit(distance_matrix)
     return clusters
