@@ -47,7 +47,7 @@
 
                         # Create venv if it doesn't exist
                         if [ ! -d ".venv" ]; then
-                            echo "Creating uv venv..."
+                            echo "====> Creating uv venv <===="
                             uv venv .venv --python "${pythonBase}/bin/python3"
                         fi
 
@@ -56,7 +56,7 @@
 
                         # Sync deps from pyproject.toml if it exists
                         if [ -f "pyproject.toml" ]; then
-                            echo "Syncing deps from pyproject.toml..."
+                            echo "====> Syncing deps from pyproject.toml <===="
                             uv sync
                         fi
 
@@ -65,44 +65,61 @@
                         VENV_HASH=$(echo "$VIRTUAL_ENV" | md5sum | cut -d' ' -f1)
 
                         if [ ! -f "$KERNEL_STAMP" ] || [ "$(cat $KERNEL_STAMP)" != "$VENV_HASH" ]; then
-                            echo "Registering Jupyter kernel..."
+                            echo "====> Registering Jupyter kernel <===="
                             uv run python -m ipykernel install --user \
                                 --name metasolid-nix \
                                 --display-name "metaSolid Nix (3.13)"
                             echo "$VENV_HASH" > "$KERNEL_STAMP"
                         fi
-                        ##### NOTE ######
-                        # This section should be cleaned up and less hardcoded
-                        # Building ollama dictory
+                        
+                        # Ollama set up
+                        # Only for dev
                         if [ ! -d "ollama-models" ]; then
                             mkdir -p ollama-models/logs
                         fi
-
+                        # Start up Ollma if not already running
+                        # This should not be the case but just in case
                         if ! pgrep -x "ollama" > /dev/null; then
-                            echo "Starting ollama serve..."
+                            echo "====> Start Ollama <===="
                             ollama serve >> ollama-models/logs/ollama.log 2>&1 & disown
+                        fi
+                        # Pull models - if already there they won't downloaded again 
+                        # Ollama handles that check. 
+                        ollama pull nomic-embed-text
+                        ollama pull qwen2.5:7b
+                        ollama pull gemma4:12b
 
-                            ollama pull nomic-embed-text
-                            ollama pull qwen2.5:7b
+                        # Initalize Model File if they are not present
+                        # Can be customized later but he autobuild the "defaults"
 
-                            if [ ! -f ollama-models/qwen.modelfile ]; then
-                                echo "Initializing Modelfile"
-                                cat > ollama-models/qwen.modelfile << 'EOF'
+                        if [ ! -f ollama-models/qwen2.5_7B.modelfile ]; then
+                                echo "====> Initializing Qwen Modelfile <===="
+                                cat > ollama-models/qwen2.5_7B.modelfile << 'EOF'
 FROM qwen2.5:7b
 PARAMETER num_ctx 8000
 PARAMETER temperature 0.7
 PARAMETER repeat_penalty 1.1
 EOF
-                                ollama create qwen:v1.0 -f ollama-models/qwen.modelfile
-                            fi
+                                ollama create qwen:v0.0.1 -f ollama-models/qwen2.5_7B.modelfile
                         fi
+
+                        if [ ! -f ollama-models/gemma4_12B.modelfile ]; then
+                                echo "====> Initializing Gemma Modelfile <===="
+                                cat > ollama-models/gemma4_1B.modelfile << 'EOF'
+FROM gemma4:12b
+PARAMETER num_ctx 8000
+PARAMETER temperature 0.7
+PARAMETER repeat_penalty 1.1
+EOF
+                                ollama create gemma:v0.0.1 -f ollama-models/gemma4_12B.modelfile
+                        fi
+                        
+                        # Trap ollama to kill on nix session exit
                         trap 'pkill -x ollama' EXIT INT TERM
-                        echo "Check available models with: ollama ls"
-                        echo "Check running models with: ollama ps"
-                        echo "Embeds: ollama pull nomic-embed-text"
-                        echo "Qwen2.5 7B: ollama pull qwen2.7:9b (Instruct Model)"
-                        echo "Modelfile located in ollama-models/"
-                        echo "METASOLID shell ready!"
+                        
+                        echo "====> Available Models through Ollama: <====\n"
+                        ollama ls
+                        echo "====> METASOLID shell ready! <===="
                     '';
                 };
 
