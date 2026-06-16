@@ -63,7 +63,7 @@ if __name__ == "__main__":
             for req in requests
         ]
         fuzzy_requests = [
-            {generate_label(generator_func, k, 1): v for k, v in zip(req.items(),cont)}
+            {generate_label(generator_func, k, 1,c): v for (k,v),c in zip(req.items(),cont)}
             for req,cont in zip(requests,context_augmentation)
         ]
         
