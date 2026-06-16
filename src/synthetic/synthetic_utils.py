@@ -6,18 +6,28 @@ from typing import Callable
 #-----------------------------------------------------------------------------#
 # FUCNTIONS
 #-----------------------------------------------------------------------------#
-def generate_label(generator_func:Callable[[str, bool], str | dict], label:str,n:int = 1) -> dict:
+def generate_label(generator_func:Callable[[str, bool], str | dict],
+                   label:str,
+                   n:int = 1,
+                   context_promt : str = 'Biological Laboratory Services') -> dict:
     base_promt_set = [f'Provide {n} synonyms for the word "{label}".',
                   f'Change the spelling of "{label}".',
                   f'Provide {n} labels which have semantic relationship with the word "{label}".']
     label_style = random.choice(base_promt_set)
-    base_promt = (f'In the context of biological lab service requests and the meta data fields:'
+    base_promt = (f'Consider this context: {context_promt}'
                 f'{label_style}'
                 f'Respond ONLY with a JSON object containing a key "label" mapping a single string.')
-    response = generator_func(base_promt, return_json = True)
-    print(f'Label Conversion: {label} => {response["label"]}')
-    return response["label"]
+    field_label = generator_func(base_promt, return_json = True)
+    print(f'Label Conversion: {label} => {field_label["label"]}')
+    return field_label["label"]
 
+def augment_context(generator_func:Callable[[str,bool],str | dict],label:str) -> dict:
+    augmentation_prompt = (f'Provide a short explination for {label} means.'
+                           f'Keep it to a single sentence of a maximum of 25 words.'
+                           f'Consider that these terms are found in the context of biological lab services.')
+    context_augmentation = generator_func(augmentation_prompt, return_json = False)
+    print(f'Augmented Context: {context_augmentation}')
+    return context_augmentation
 
 def ablate_metadata(metadata:dict, ablation_frac:float = 0.2) -> dict:
     n_fields = len(metadata) - (len(metadata)  * ablation_frac)

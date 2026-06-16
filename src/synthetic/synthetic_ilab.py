@@ -5,7 +5,7 @@ import os
 import argparse
 import json
 from providers.generators import build_generator
-from synthetic.synthetic_utils import (generate_label, ablate_metadata,flatten_dict)
+from synthetic.synthetic_utils import (generate_label, ablate_metadata,flatten_dict,augment_context)
 #-----------------------------------------------------------------------------#
 # CONFIG
 #-----------------------------------------------------------------------------#
@@ -58,9 +58,13 @@ if __name__ == "__main__":
         # First we flatten the request before parsing it to the generator functions.
         requests = [flatten_dict(md) for md in metadata]
         requests = requests[:5] # only take 5 requests for development purposes
-        fuzzy_requests = [
-            {generate_label(generator_func, k, 1): v for k, v in req.items()}
+        context_augmentation = [
+            [augment_context(generator_func,k) for k,_ in req.items()]
             for req in requests
+        ]
+        fuzzy_requests = [
+            {generate_label(generator_func, k, 1): v for k, v in zip(req.items(),cont)}
+            for req,cont in zip(requests,context_augmentation)
         ]
         
         with open(f'{args.output}/fuzzy_service_request.json', 'w') as f:
