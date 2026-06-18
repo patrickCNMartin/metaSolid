@@ -59,14 +59,16 @@ if __name__ == "__main__":
         requests = [flatten_dict(md) for md in metadata]
         requests = requests[:5] # only take 5 requests for development purposes
         context_augmentation = [
-            [augment_context(generator_func,k) for k,_ in req.items()]
+            {k:augment_context(generator_func,{k:v})['label'] for k,v in req.items()}
             for req in requests
         ]
+        with open(f'{args.output}/context_augmentation.json', 'w') as f:
+            json.dump(context_augmentation,f)
+
         fuzzy_requests = [
-            {generate_label(generator_func, k, 1,c): v for (k,v),c in zip(req.items(),cont)}
+            {generate_label(generator_func, k, 1,c): v for (k,v),(c,_) in zip(req.items(),cont.items())}
             for req,cont in zip(requests,context_augmentation)
         ]
-        
         with open(f'{args.output}/fuzzy_service_request.json', 'w') as f:
             json.dump(fuzzy_requests,f)
     

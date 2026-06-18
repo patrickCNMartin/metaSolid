@@ -16,17 +16,21 @@ def generate_label(generator_func:Callable[[str, bool], str | dict],
     label_style = random.choice(base_promt_set)
     base_promt = (f'Consider this context: {context_promt}'
                 f'{label_style}'
-                f'Respond ONLY with a JSON object containing a key "label" mapping a single string.')
+                f'Respond ONLY with a JSON object containing a key "label" mapping a single string.'
+                f'Only use english terms.')
     field_label = generator_func(base_promt, return_json = True)
     print(f'Label Conversion: {label} => {field_label["label"]}')
     return field_label["label"]
 
-def augment_context(generator_func:Callable[[str,bool],str | dict],label:str) -> dict:
-    augmentation_prompt = (f'Provide a short explination for {label} means.'
+def augment_context(generator_func:Callable[[str,bool],str | dict],label:dict) -> dict:
+    augmentation_prompt = (f'Provide a short explination for {list(label.keys())[0]} means.'
                            f'Keep it to a single sentence of a maximum of 25 words.'
-                           f'Consider that these terms are found in the context of biological lab services.')
-    context_augmentation = generator_func(augmentation_prompt, return_json = False)
-    print(f'Augmented Context: {context_augmentation}')
+                           f'Consider that these terms are found in the context of biological lab services.'
+                           f'Potential values assigned to this field can look like: {list(label.values())[0]}'
+                           f'Respond ONLY with a JSON object containing a key "label" mapping a single string.'
+                           f'Only use english terms.')
+    context_augmentation = generator_func(augmentation_prompt, return_json = True)
+    print(f'Augmented Context: {context_augmentation['label']}')
     return context_augmentation
 
 def ablate_metadata(metadata:dict, ablation_frac:float = 0.2) -> dict:
