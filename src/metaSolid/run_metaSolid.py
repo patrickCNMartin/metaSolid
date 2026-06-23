@@ -6,15 +6,15 @@ import os
 import argparse
 import matplotlib.pyplot as plt
 from metaSolid.semantics import (build_semantic_array,semantic_clusters)
-from metaSolid.visualize import (plot_dendrogram_from_clustering,plot_word_cloud_umap)
+from metaSolid.visualize import (plot_dendrogram_and_heatmap,plot_word_cloud_umap)
 
 #-----------------------------------------------------------------------------#
 # CONFIG
 #-----------------------------------------------------------------------------#
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
-GEN_MODEL = os.getenv("GEN_MODEL", "gemma:v0.0.1")
+GEN_MODEL = os.getenv("GEN_MODEL", "qwen:v0.0.1")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
-
+SEMANTIC_THRESHOLD = float(os.getenv("SEMANTIC_THRESHOLD", 0.2))
 
 #-----------------------------------------------------------------------------#
 # UTIL FUNCTIONS
@@ -60,11 +60,11 @@ if __name__ == "__main__":
     
     unique_fields,embeddings = build_semantic_array(metadata = metadata)
     print(f'Unique Fields: {unique_fields}')
-    clusters = semantic_clusters(embeddings=embeddings)
-    fig, ax = plt.subplots(figsize=(12, 6))
-    plot_dendrogram_from_clustering(unique_fields, clusters, ax=ax)
+    clusters, distance_matrix = semantic_clusters(embeddings=embeddings)
+    #import pdb;pdb.set_trace()
+    fig, ax = plt.subplots(figsize=(20, 20))
+    plot_dendrogram_and_heatmap(unique_fields, clusters, distance_matrix,fig=fig)
     ax.tick_params(axis='x', labelsize=8)
-    plt.tight_layout()
     plt.savefig(f"{args.output}/semantic_clusters.png",dpi=300, bbox_inches='tight')
     #plt.show()
 

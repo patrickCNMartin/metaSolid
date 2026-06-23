@@ -23,10 +23,11 @@ def generate_label(generator_func:Callable[[str, bool], str | dict],
     return field_label["label"]
 
 def augment_context(generator_func:Callable[[str,bool],str | dict],label:dict) -> dict:
-    augmentation_prompt = (f'Provide a short explination for {list(label.keys())[0]} means.'
+    augmentation_prompt = (f'Provide a short explination for what {list(label.keys())[0]} means.'
                            f'Keep it to a single sentence of a maximum of 25 words.'
                            f'Consider that these terms are found in the context of biological lab services.'
                            f'Potential values assigned to this field can look like: {list(label.values())[0]}'
+                           f'DO NOT return {list(label.values())[0]} in your response.'
                            f'Respond ONLY with a JSON object containing a key "label" mapping a single string.'
                            f'Only use english terms.')
     context_augmentation = generator_func(augmentation_prompt, return_json = True)
