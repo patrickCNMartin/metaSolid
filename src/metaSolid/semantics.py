@@ -34,10 +34,17 @@ def semantic_clusters(embeddings, threshold: float = 0.1):
     ).fit(distance_matrix)
     return clusters, distance_matrix
 
-def semantic_stripping(metadata:list, exclude_subject:list, exclusion_threshold = 0.1, model_name:str = "nomic-embed-text"):
-    unique_keys = list({k for d in metadata for k in d.keys()})
-    metadata_semantics = get_semantic_embeddings(unique_keys, model_name = model_name)
-    exculsion_semantics = get_semantic_embeddings(exclude_subject, model_name = model_name)
-    distance = cosine_similarity(metadata_semantics,exculsion_semantics)
-    import pdb;pdb.set_trace()
-    return distance
+def semantic_stripping(metadata: list, exclude_subject: list, 
+                       exclusion_threshold: float = 0.1, 
+                       model_name: str = "nomic-embed-text"):
+    unique_keys = np.array(metadata)
+    
+    metadata_semantics = get_semantic_embeddings(unique_keys.tolist(), model_name=model_name)
+    exclusion_semantics = get_semantic_embeddings(exclude_subject, model_name=model_name)
+    
+    distance = cosine_similarity(exclusion_semantics, metadata_semantics)  # (n_subjects, n_keys)
+    
+    # Keep keys where NO exclusion subject exceeds the threshold
+    keep_mask = ~(distance >= exclusion_threshold).any(axis=0)
+    
+    return unique_keys[keep_mask]

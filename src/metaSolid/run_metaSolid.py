@@ -5,7 +5,7 @@ import json
 import os
 import argparse
 import matplotlib.pyplot as plt
-from metaSolid.semantics import (build_semantic_array,semantic_clusters)
+from metaSolid.semantics import (build_semantic_array,semantic_clusters,semantic_stripping)
 from metaSolid.visualize import (plot_dendrogram_and_heatmap,plot_word_cloud_umap)
 
 #-----------------------------------------------------------------------------#
@@ -61,7 +61,8 @@ if __name__ == "__main__":
     unique_fields,embeddings = build_semantic_array(metadata = metadata)
     print(f'Unique Fields: {unique_fields}')
     clusters, distance_matrix = semantic_clusters(embeddings=embeddings)
-    #import pdb;pdb.set_trace()
+    strip = semantic_stripping(unique_fields,['API','url'],0.6)
+    import pdb;pdb.set_trace()
     fig, ax = plt.subplots(figsize=(20, 20))
     plot_dendrogram_and_heatmap(unique_fields, clusters, distance_matrix,fig=fig)
     ax.tick_params(axis='x', labelsize=8)
