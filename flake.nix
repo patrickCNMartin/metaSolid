@@ -75,9 +75,13 @@
                                 --display-name "metaSolid Nix (3.13)"
                             echo "$VENV_HASH" > "$KERNEL_STAMP"
                         fi
-                        
+                        #-----------------------------------------------------#
                         # Ollama set up
                         # Only for dev
+                        # This might not be the best option for sharing dev shells!!!!
+                        # This is useful for full local but not very flexible
+                        # Makes to many assumptions about how to get access to the LLM
+                        #-----------------------------------------------------#
                         if [ ! -d "ollama-models" ]; then
                             mkdir -p ollama-models/logs
                         fi
@@ -138,6 +142,8 @@ EOF
                 # ── Thin OCI Image ───────────────────────────────────────────
                 # Contains: Python 3.13 + uv + your pyproject.toml deps
                 # Provides base image to run metaSolid
+                # This is needs to cleaned up because it sucks 
+                # and is stupid... 
                 packages.ociThin = pkgs.dockerTools.buildLayeredImage {
                     name = "metasolid";
                     tag  = "thin";
