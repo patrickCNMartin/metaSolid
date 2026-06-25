@@ -66,7 +66,7 @@ if __name__ == "__main__":
             json.dump(context_augmentation,f)
 
         fuzzy_requests = [
-            {generate_label(generator_func, k, 1,c): v for (k,v),(c,_) in zip(req.items(),cont.items())}
+            {generate_label(generator_func, k, 1,ck): [v,cv] for (k,v),(ck,cv) in zip(req.items(),cont.items())}
             for req,cont in zip(requests,context_augmentation)
         ]
         with open(f'{args.output}/fuzzy_service_request.json', 'w') as f:

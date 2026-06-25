@@ -24,7 +24,7 @@ def generate_label(generator_func:Callable[[str, bool], str | dict],
 
 def augment_context(generator_func:Callable[[str,bool],str | dict],label:dict) -> dict:
     augmentation_prompt = (f'Provide a short explination for what {list(label.keys())[0]} means.'
-                           f'Keep it to a single sentence of a maximum of 25 words.'
+                           f'Keep it to a maximum of 50 words.'
                            f'Consider that these terms are found in the context of biological lab services.'
                            f'Potential values assigned to this field can look like: {list(label.values())[0]}'
                            f'DO NOT return {list(label.values())[0]} in your response.'

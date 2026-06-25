@@ -5,7 +5,7 @@ import json
 import os
 import argparse
 import matplotlib.pyplot as plt
-from metaSolid.semantics import (build_semantic_array,semantic_clusters,semantic_stripping)
+from metaSolid.semantics import (get_semantic_embeddings,semantic_clusters,semantic_stripping,add_field_context)
 from metaSolid.visualize import (plot_dendrogram_and_heatmap,plot_word_cloud_umap)
 
 #-----------------------------------------------------------------------------#
@@ -58,19 +58,27 @@ if __name__ == "__main__":
     with open(f'{args.metadata}') as f:
         metadata = json.load(f)
     
-    unique_fields,embeddings = build_semantic_array(metadata = metadata)
-    print(f'Unique Fields: {unique_fields}')
+
+    #import pdb;pdb.set_trace()
+    filtered_metadata = semantic_stripping(metadata,['API','url','HTTP','git'],0.6)
+    # adding context to key for semantic embeddings and pull associated key
+    # I think this could be improved. The aim was to make it a bit more flexible
+    # but I end up going back and forth with stuff - wasted compute
+    context_fields = add_field_context(filtered_metadata)
+    context = [context[1] for context in context_fields]
+    fields = [field[0] for field in context_fields]
+    embeddings = get_semantic_embeddings(prompts = context)
     clusters, distance_matrix = semantic_clusters(embeddings=embeddings)
-    strip = semantic_stripping(unique_fields,['API','url'],0.6)
-    import pdb;pdb.set_trace()
-    fig, ax = plt.subplots(figsize=(20, 20))
-    plot_dendrogram_and_heatmap(unique_fields, clusters, distance_matrix,fig=fig)
+    
+    #import pdb;pdb.set_trace()
+    fig, ax = plt.subplots(figsize=(23, 23))
+    plot_dendrogram_and_heatmap(fields, clusters, distance_matrix,fig=fig)
     ax.tick_params(axis='x', labelsize=8)
     plt.savefig(f"{args.output}/semantic_clusters.png",dpi=300, bbox_inches='tight')
     #plt.show()
 
     fig, ax = plt.subplots(figsize=(12, 6))
-    plot_word_cloud_umap(unique_fields, embeddings, ax=ax)
+    plot_word_cloud_umap(fields, embeddings, ax=ax)
     ax.tick_params(axis='x', labelsize=8)
     plt.tight_layout()
     plt.savefig(f"{args.output}/semantic_word_cloud.png",dpi=300, bbox_inches='tight')
