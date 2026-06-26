@@ -14,7 +14,7 @@ env/.env
 # Whitelisted Assets #
 !README
 # Adding example env
-env/.env.example
+!env/.env.example
 ## Nix Files ##
 !flake.lock
 !flake.nix
