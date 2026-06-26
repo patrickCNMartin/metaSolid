@@ -4,9 +4,10 @@
 import argparse
 import json
 import os
-
 import matplotlib.pyplot as plt
 
+from dotenv import load_dotenv
+from pathlib import Path
 from metaSolid.semantics import (
     add_field_context,
     get_semantic_embeddings,
@@ -20,15 +21,24 @@ from providers.generators import build_generator
 # -----------------------------------------------------------------------------#
 # CONFIG
 # -----------------------------------------------------------------------------#
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
+# should probably clean this....
+dotenv_path = (Path(__file__).resolve().parent / "../../env/.env").resolve()
+load_dotenv(dotenv_path=dotenv_path)
+
+GEN_PROVIDER = os.getenv("GEN_PROVIDER", "ollama")
 GEN_MODEL = os.getenv("GEN_MODEL", "qwen:v0.0.1")
 GEN_ENDPOINT = os.getenv("GEN_ENDPOINT", "http://localhost:11434/v1/chat/completions")
+GEN_API_KEY = os.getenv("GEN_API_KEY", None)
+
+EMBED_PROVIDER = os.getenv("EMBED_PROVIDER", "ollama")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
 EMBED_ENDPOINT = os.getenv("EMBED_ENDPOINT", "http://localhost:11434/v1/embeddings")
-API_KEY = os.getenv("LLM_API_KEY", None)
-SEMANTIC_THRESHOLD = float(os.getenv("SEMANTIC_THRESHOLD", 0.2))
-EXCLUSION_TERMS = json.loads(os.getenv("SEMANTIC_EXCLUSION_TERMS", "[]"))
+EMBED_API_KEY = os.getenv("EMBED_API_KEY", None)
 
+SEMANTIC_THRESHOLD = float(os.getenv("SEMANTIC_THRESHOLD", 0.2))
+
+et = os.getenv("EXCLUSION_TERMS")
+EXCLUSION_TERMS = json.loads(et) if et else []
 
 # -----------------------------------------------------------------------------#
 # UTIL FUNCTIONS
@@ -67,18 +77,18 @@ if __name__ == "__main__":
     # This generator function is essentially what wraps the LLM api into a single
     # Function call. It gets a prompt and bool (return json on true).
     # This function is then parse to what ever subfunction needs a generator.
-    print(f"Using:{LLM_PROVIDER} with {GEN_MODEL}")
+    print(f"Using:{GEN_PROVIDER} with {GEN_MODEL}")
     generator_func = build_generator(
-        provider=LLM_PROVIDER,
+        provider=GEN_PROVIDER,
         model_name=GEN_MODEL,
-        api_key=API_KEY,
+        api_key=GEN_API_KEY,
         endpoint=GEN_ENDPOINT,
     )
-    print(f"Using:{LLM_PROVIDER} with {EMBED_MODEL}")
+    print(f"Using:{EMBED_PROVIDER} with {EMBED_MODEL}")
     embedder_func = build_embedder(
-        provider=LLM_PROVIDER,
+        provider=EMBED_PROVIDER,
         model_name=EMBED_MODEL,
-        api_key=API_KEY,
+        api_key=EMBED_API_KEY,
         endpoint=EMBED_ENDPOINT,
     )
 

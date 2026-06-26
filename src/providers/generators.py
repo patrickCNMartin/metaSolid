@@ -30,6 +30,12 @@ def build_generator(
             headers = {"Content-Type": "application/json"}
             if api_key:
                 headers["Authorization"] = f"Bearer {api_key}"
+        case "open-llm":
+            url = endpoint or "https://openllm.scilifelab.se/api/chat/completions"
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            }
         case "openai":
             # Strictly fallback commercial layer
             # assume that this is the default url
@@ -55,10 +61,10 @@ def build_generator(
         # Make sure that response comes as json
         if return_json:
             payload["response_format"] = {"type": "json_object"}
-
+        
         # Now we send the request to the LLM
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            response = requests.post(url, headers=headers, json=payload)
             response.raise_for_status()
             response_data = response.json()
         except requests.exceptions.RequestException as e:

@@ -8,14 +8,13 @@
 # Black List - Make sure that variation on .env will be excluded no matter what 
 .env
 .env.*
-security/.env
-security/.env.*
 env/.env
-env/.env.*
 .venv/
 
 # Whitelisted Assets #
 !README
+# Adding example env
+env/.env.example
 ## Nix Files ##
 !flake.lock
 !flake.nix
@@ -24,6 +23,5 @@ env/.env.*
 !uv.lock
 ## Python ##
 !*.py
-
 ## Modelfiles ##
 !*.modelfile

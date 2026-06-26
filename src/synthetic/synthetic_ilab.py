@@ -4,6 +4,8 @@
 import argparse
 import json
 import os
+from dotenv import load_dotenv
+from pathlib import Path
 
 from providers.generators import build_generator
 from synthetic.synthetic_utils import (
@@ -16,11 +18,14 @@ from synthetic.synthetic_utils import (
 # -----------------------------------------------------------------------------#
 # CONFIG
 # -----------------------------------------------------------------------------#
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
+# should probably clean this....
+dotenv_path = (Path(__file__).resolve().parent / "../../env/.env").resolve()
+load_dotenv(dotenv_path=dotenv_path)
+
+GEN_PROVIDER = os.getenv("GEN_PROVIDER", "ollama")
 GEN_MODEL = os.getenv("GEN_MODEL", "qwen:v0.0.1")
 GEN_ENDPOINT = os.getenv("GEN_ENDPOINT", "http://localhost:11434/v1/chat/completions")
-API_KEY = os.getenv("LLM_API_KEY", None)
-
+GEN_API_KEY = os.getenv("GEN_API_KEY", None)
 
 # -----------------------------------------------------------------------------#
 # UTIL FUNCTIONS
@@ -58,11 +63,11 @@ if __name__ == "__main__":
     # This generator function is essentially what wraps the LLM api into a single
     # Function call. It gets a prompt and bool (return json on true).
     # This function is then parse to what ever subfunction needs a generator.
-    print(f"Using:{LLM_PROVIDER} with {GEN_MODEL}")
+    print(f"Using:{GEN_PROVIDER} with {GEN_MODEL}")
     generator_func = build_generator(
-        provider=LLM_PROVIDER,
+        provider=GEN_PROVIDER,
         model_name=GEN_MODEL,
-        api_key=API_KEY,
+        api_key=GEN_API_KEY,
         endpoint=GEN_ENDPOINT,
     )
     # Loading previously computed fuzzy request just in case.

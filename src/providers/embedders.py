@@ -2,7 +2,6 @@
 # IMPORT LIBS
 # -----------------------------------------------------------------------------#
 from typing import List, Union
-
 import numpy as np
 import requests
 
@@ -29,6 +28,12 @@ def build_embedder(
             headers = {"Content-Type": "application/json"}
             if api_key:
                 headers["Authorization"] = f"Bearer {api_key}"
+        case "opem-llm":
+            url = endpoint or "https://openllm.scilifelab.se/api/embeddings"
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            }
         case "openai":
             url = endpoint or "https://api.openai.com/v1/embeddings"
             headers = {
@@ -51,7 +56,7 @@ def build_embedder(
 
         # Pull embeddings
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response = requests.post(url, headers=headers, json=payload)
             response.raise_for_status()
             response_data = response.json()
         except requests.exceptions.RequestException as e:
