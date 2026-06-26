@@ -1,18 +1,11 @@
 # Selective Git
 *
-!*/
 !.gitignore
 !.pre-commit-config.yaml
-!.secrets.baseline
-
-# Black List - Make sure that variation on .env will be excluded no matter what 
-.env
-.env.*
-env/.env
-.venv/
+!security/.secrets.baseline
+!README
 
 # Whitelisted Assets #
-!README
 # Adding example env
 !env/.env.example
 ## Nix Files ##
@@ -21,7 +14,7 @@ env/.env
 ## Uv files
 !pyproject.toml
 !uv.lock
-## Python ##
-!*.py
+## Source code ##
+!src/*.py
 ## Modelfiles ##
-!*.modelfile
+!ollama/*.modelfile
