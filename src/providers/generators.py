@@ -32,7 +32,7 @@ def build_generator(
                 headers["Authorization"] = f"Bearer {api_key}"
         case "open-llm":
             url = endpoint or "https://openllm.scilifelab.se/api/chat/completions"
-            headers={
+            headers = {
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             }
@@ -61,7 +61,7 @@ def build_generator(
         # Make sure that response comes as json
         if return_json:
             payload["response_format"] = {"type": "json_object"}
-        
+
         # Now we send the request to the LLM
         try:
             response = requests.post(url, headers=headers, json=payload)

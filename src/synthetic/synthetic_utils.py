@@ -21,11 +21,11 @@ def generate_label(
     ]
     label_style = random.choice(base_promt_set)
     base_promt = (
-        f'Consider this context: {context_promt} '
-        f'{label_style}'
-        f'Respond ONLY with a JSON object containing '
+        f"Consider this context: {context_promt} "
+        f"{label_style}"
+        f"Respond ONLY with a JSON object containing "
         f'a key "label" mapping a single string. '
-        f'Only use english terms.'
+        f"Only use english terms."
     )
     field_label = generator_func(base_promt, return_json=True)
     print(f"Label Conversion: {label} => {field_label['label']}")
@@ -36,15 +36,15 @@ def augment_context(
     generator_func: Callable[[str, bool], str | dict], label: dict
 ) -> dict:
     augmentation_prompt = (
-        f'Provide a short explination for what {list(label.keys())[0]} means. '
-        f'Keep it to a maximum of 50 words. '
-        f'Terms are found in the context of biological lab services. '
-        f'Potential values assigned to this field can look like: '
-        f'{list(label.values())[0]}.'
-        f'DO NOT return {list(label.values())[0]} in your response. '
-        f'Respond ONLY with a JSON object containing '
+        f"Provide a short explination for what {list(label.keys())[0]} means. "
+        f"Keep it to a maximum of 50 words. "
+        f"Terms are found in the context of biological lab services. "
+        f"Potential values assigned to this field can look like: "
+        f"{list(label.values())[0]}."
+        f"DO NOT return {list(label.values())[0]} in your response. "
+        f"Respond ONLY with a JSON object containing "
         f'a key "label" mapping a single string. '
-        f'Only use english terms.'
+        f"Only use english terms."
     )
     context_augmentation = generator_func(augmentation_prompt, return_json=True)
     print(f"Augmented Context: {context_augmentation['label']}")

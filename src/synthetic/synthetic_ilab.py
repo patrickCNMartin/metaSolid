@@ -4,8 +4,9 @@
 import argparse
 import json
 import os
-from dotenv import load_dotenv
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 from providers.generators import build_generator
 from synthetic.synthetic_utils import (
@@ -26,6 +27,7 @@ GEN_PROVIDER = os.getenv("GEN_PROVIDER", "ollama")
 GEN_MODEL = os.getenv("GEN_MODEL", "qwen:v0.0.1")
 GEN_ENDPOINT = os.getenv("GEN_ENDPOINT", "http://localhost:11434/v1/chat/completions")
 GEN_API_KEY = os.getenv("GEN_API_KEY", None)
+
 
 # -----------------------------------------------------------------------------#
 # UTIL FUNCTIONS

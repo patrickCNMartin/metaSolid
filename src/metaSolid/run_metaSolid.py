@@ -4,10 +4,11 @@
 import argparse
 import json
 import os
-import matplotlib.pyplot as plt
-
-from dotenv import load_dotenv
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+
 from metaSolid.semantics import (
     add_field_context,
     get_semantic_embeddings,
@@ -39,6 +40,7 @@ SEMANTIC_THRESHOLD = float(os.getenv("SEMANTIC_THRESHOLD", 0.2))
 
 et = os.getenv("EXCLUSION_TERMS")
 EXCLUSION_TERMS = json.loads(et) if et else []
+
 
 # -----------------------------------------------------------------------------#
 # UTIL FUNCTIONS

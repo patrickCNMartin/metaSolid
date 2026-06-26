@@ -2,6 +2,7 @@
 # IMPORT LIBS
 # -----------------------------------------------------------------------------#
 from typing import List, Union
+
 import numpy as np
 import requests
 
@@ -30,7 +31,7 @@ def build_embedder(
                 headers["Authorization"] = f"Bearer {api_key}"
         case "opem-llm":
             url = endpoint or "https://openllm.scilifelab.se/api/embeddings"
-            headers={
+            headers = {
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             }
