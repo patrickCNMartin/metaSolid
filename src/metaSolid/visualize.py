@@ -31,11 +31,7 @@ def plot_dendrogram_and_heatmap(
 
     Z = np.column_stack([model.children_, model.distances_, counts])
     ddata = dendrogram(
-        Z,
-        labels=unique_keys,
-        color_threshold=threshold,
-        leaf_rotation=90,
-        ax=ax_dendro
+        Z, labels=unique_keys, color_threshold=threshold, leaf_rotation=90, ax=ax_dendro
     )
 
     order = ddata["leaves"]

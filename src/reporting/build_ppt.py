@@ -36,7 +36,7 @@ SLIDE_H = Inches(5.625)
 def parse_markdown(text: str) -> list[dict]:
     """
     Converts markdown text into a list of slide dicts:
-      { "title": str, 
+      { "title": str,
         "body": [ {"type": "h2"|"bullet"|"text", "text": str, "level": int} ] }
 
     Rules:

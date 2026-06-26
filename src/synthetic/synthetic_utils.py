@@ -23,7 +23,8 @@ def generate_label(
     base_promt = (
         f"Consider this context: {context_promt}"
         f"{label_style}"
-        f'Respond ONLY with a JSON object containing a key "label" mapping a single string.'
+        f"Respond ONLY with a JSON object containing "
+        f'a key "label" mapping a single string.'
         f"Only use english terms."
     )
     field_label = generator_func(base_promt, return_json=True)
@@ -41,7 +42,7 @@ def augment_context(
         f"Potential values assigned to this field can look like:"
         f"{list(label.values())[0]}."
         f"DO NOT return {list(label.values())[0]} in your response."
-        f'Respond ONLY with a JSON object containing '
+        f"Respond ONLY with a JSON object containing "
         f'a key "label" mapping a single string.'
         f"Only use english terms."
     )

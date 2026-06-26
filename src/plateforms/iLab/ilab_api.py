@@ -75,8 +75,10 @@ examples:
         "--outfile",
         required=True,
         type=str,
-        help=(f"Output file location "
-              f"if none provide default names will be used in current directory."),
+        help=(
+            "Output file location "
+            "if none provide default names will be used in current directory."
+        ),
     )
     parser.add_argument(
         "--build_report",

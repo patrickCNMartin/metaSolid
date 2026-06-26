@@ -41,8 +41,8 @@ def build_generator(
         case _:
             raise ValueError(f"Unsupported profile: {provider}")
 
-    # NOTE: the purpose of doing this is for maximum sovereignty. 
-    # I don't want to rely on any vendor sdk if I can avoid doing so. 
+    # NOTE: the purpose of doing this is for maximum sovereignty.
+    # I don't want to rely on any vendor sdk if I can avoid doing so.
     # The goal is to have universal open source approach
     def generate(prompt: str, return_json: bool = True) -> Union[str, dict]:
         # Prepare prompt
@@ -72,7 +72,7 @@ def build_generator(
                 "Malformed response during text generation: {response_data}"
             )
 
-        # If we need a json and not just text we format and 
+        # If we need a json and not just text we format and
         # return as dict instead of text
         if return_json:
             try:

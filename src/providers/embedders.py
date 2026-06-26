@@ -38,12 +38,12 @@ def build_embedder(
         case _:
             raise ValueError(f"Unsupported embedding profile: {provider}")
 
-    # NOTE: the purpose of doing this is for maximum sovereignty. 
-    # I don't want to rely on any vendor sdk if I can avoid doing so. 
+    # NOTE: the purpose of doing this is for maximum sovereignty.
+    # I don't want to rely on any vendor sdk if I can avoid doing so.
     # The goal is to have universal open source approach
     def embed(text_input: Union[str, List[str]]) -> np.ndarray:
         """
-        Takes a single string or a list of text chunks and 
+        Takes a single string or a list of text chunks and
         returns their vector embeddings.
         """
         # Prepare prompt
