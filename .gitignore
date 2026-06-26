@@ -15,6 +15,7 @@ env/.env.*
 .venv/
 
 # Whitelisted Assets #
+!README
 ## Nix Files ##
 !flake.lock
 !flake.nix
