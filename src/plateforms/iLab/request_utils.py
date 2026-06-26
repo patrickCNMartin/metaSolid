@@ -1,5 +1,6 @@
-import requests
 import re
+
+import requests
 
 # -----------------------------------------------------------------------------#
 # IMPORT GENERIC UTILS

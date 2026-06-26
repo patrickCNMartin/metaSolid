@@ -1,31 +1,32 @@
 # -----------------------------------------------------------------------------#
 # IMPORT LIBS
 # -----------------------------------------------------------------------------#
-import os
-
 import argparse
 import json
+import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
-# -----------------------------------------------------------------------------#
-# IMPORT GENERIC UTILS
-# -----------------------------------------------------------------------------#
-from utils.utils import set_default_cutoff_dates, convert_date
+from plateforms.iLab.format_convert import convert_sr_to_md
 from plateforms.iLab.request_utils import (
-    get_cores,
     filter_service_requests,
+    get_cores,
     get_request_description,
     get_request_info,
     select_service_request,
 )
-from plateforms.iLab.format_convert import convert_sr_to_md
 from reporting.build_ppt import convert_md_to_ppt
+
+# -----------------------------------------------------------------------------#
+# IMPORT GENERIC UTILS
+# -----------------------------------------------------------------------------#
+from utils.utils import convert_date, set_default_cutoff_dates
 
 # -----------------------------------------------------------------------------#
 # SET ENV VARS
 # -----------------------------------------------------------------------------#
-#dotenv_path = Path.cwd() / "env" / ".ilab.env"
+# dotenv_path = Path.cwd() / "env" / ".ilab.env"
 # Yes I know this is hardcoded - will change later
 dotenv_path = (Path(__file__).resolve().parent / "../../../env/.env").resolve()
 load_dotenv(dotenv_path=dotenv_path)
@@ -74,7 +75,8 @@ examples:
         "--outfile",
         required=True,
         type=str,
-        help="Output file location - if none provide default names will be used in current directory.",
+        help=(f"Output file location "
+              f"if none provide default names will be used in current directory."),
     )
     parser.add_argument(
         "--build_report",

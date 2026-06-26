@@ -4,11 +4,11 @@
 
 import re
 from datetime import date
+
 from pptx import Presentation
-from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
-
+from pptx.util import Inches, Pt
 
 # -----------------------------------------------------------------------------#
 # DEFINE GLOBAL VARS
@@ -36,7 +36,8 @@ SLIDE_H = Inches(5.625)
 def parse_markdown(text: str) -> list[dict]:
     """
     Converts markdown text into a list of slide dicts:
-      { "title": str, "body": [ {"type": "h2"|"bullet"|"text", "text": str, "level": int} ] }
+      { "title": str, 
+        "body": [ {"type": "h2"|"bullet"|"text", "text": str, "level": int} ] }
 
     Rules:
       - H1 (#)  → new slide, used as the slide title
@@ -334,8 +335,8 @@ def _style_paragraph(
     space_before=0,
     space_after=0,
 ):
-    from pptx.oxml.ns import qn
     from lxml import etree
+    from pptx.oxml.ns import qn
 
     p.space_before = Pt(space_before)
     p.space_after = Pt(space_after)
