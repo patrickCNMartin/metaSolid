@@ -3,7 +3,7 @@
 !.gitignore
 !.pre-commit-config.yaml
 !security/.secrets.baseline
-!README
+!README.md
 
 # Whitelisted Assets #
 # Adding example env
