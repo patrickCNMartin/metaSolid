@@ -5,6 +5,8 @@ import json
 import os
 import argparse
 import matplotlib.pyplot as plt
+from providers.generators import build_generator
+from providers.embedders import build_embedder
 from metaSolid.semantics import (get_semantic_embeddings,semantic_clusters,semantic_stripping,add_field_context)
 from metaSolid.visualize import (plot_dendrogram_and_heatmap,plot_word_cloud_umap)
 
@@ -13,8 +15,12 @@ from metaSolid.visualize import (plot_dendrogram_and_heatmap,plot_word_cloud_uma
 #-----------------------------------------------------------------------------#
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
 GEN_MODEL = os.getenv("GEN_MODEL", "qwen:v0.0.1")
+GEN_ENDPOINT = os.getenv("GEN_ENDPOINT", "http://localhost:11434/v1/chat/completions")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
+EMBED_ENDPOINT = os.getenv("EMBED_ENDPOINT", "http://localhost:11434/v1/embeddings")
+API_KEY = os.getenv("LLM_API_KEY", None)
 SEMANTIC_THRESHOLD = float(os.getenv("SEMANTIC_THRESHOLD", 0.2))
+EXCLUSION_TERMS = json.loads(os.getenv("SEMANTIC_EXCLUSION_TERMS", "[]"))
 
 #-----------------------------------------------------------------------------#
 # UTIL FUNCTIONS
@@ -52,22 +58,36 @@ if __name__ == "__main__":
     # This generator function is essentially what wraps the LLM api into a single
     # Function call. It gets a prompt and bool (return json on true).
     # This function is then parse to what ever subfunction needs a generator.
+    print(f'Using:{LLM_PROVIDER} with {GEN_MODEL}')
+    generator_func = build_generator(provider = LLM_PROVIDER, 
+        model_name = GEN_MODEL,
+        api_key = API_KEY,
+        endpoint = GEN_ENDPOINT)
     print(f'Using:{LLM_PROVIDER} with {EMBED_MODEL}')
+    embedder_func = build_embedder(provider = LLM_PROVIDER, 
+        model_name = EMBED_MODEL,
+        api_key = API_KEY,
+        endpoint = EMBED_ENDPOINT)
+    
 
     # Load meta data - atm I'm assuming that it is a list of dicts
     with open(f'{args.metadata}') as f:
         metadata = json.load(f)
     
 
-    #import pdb;pdb.set_trace()
-    filtered_metadata = semantic_stripping(metadata,['API','url','HTTP','git'],0.6)
+    # first we filter the mete data base on the exclusion terms
+    # For the most part we don't care about API specific terms
+    filtered_metadata = semantic_stripping(embedder_func,
+                                           metadata = metadata,
+                                           exclude_subject = EXCLUSION_TERMS,
+                                           exclusion_threshold = SEMANTIC_THRESHOLD)
+    fields,context_fields = add_field_context(filtered_metadata)
     # adding context to key for semantic embeddings and pull associated key
     # I think this could be improved. The aim was to make it a bit more flexible
     # but I end up going back and forth with stuff - wasted compute
-    context_fields = add_field_context(filtered_metadata)
-    context = [context[1] for context in context_fields]
-    fields = [field[0] for field in context_fields]
-    embeddings = get_semantic_embeddings(prompts = context)
+    
+    
+    embeddings = get_semantic_embeddings(embedder_func, prompts = context_fields)
     clusters, distance_matrix = semantic_clusters(embeddings=embeddings)
     
     #import pdb;pdb.set_trace()

@@ -31,8 +31,8 @@ dotenv_path = (Path(__file__).resolve().parent / "../../../env/.env").resolve()
 load_dotenv(dotenv_path=dotenv_path)
 
 
-API_KEY = os.getenv("API_KEY", "")
-BASE_URL = os.getenv("BASE_DOMAIN", "")
+API_KEY = os.getenv("ILAB_KEY", "")
+BASE_URL = os.getenv("ILAB_DOMAIN", "")
 CORE_LOC = os.getenv("DEFAULT_CORE_LOCATION", "v1/cores")
 
 CORE_ID = os.getenv("CORE_ID", "")

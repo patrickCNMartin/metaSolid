@@ -23,3 +23,6 @@ env/.env.*
 !uv.lock
 ## Python ##
 !*.py
+
+## Modelfiles ##
+!*.modelfile

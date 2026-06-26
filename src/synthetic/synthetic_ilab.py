@@ -10,7 +10,10 @@ from synthetic.synthetic_utils import (generate_label, ablate_metadata,flatten_d
 # CONFIG
 #-----------------------------------------------------------------------------#
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
-GEN_MODEL = os.getenv("MODEL", "qwen:v0.0.1")
+GEN_MODEL = os.getenv("GEN_MODEL", "qwen:v0.0.1")
+GEN_ENDPOINT = os.getenv("GEN_ENDPOINT", "http://localhost:11434/v1/chat/completions")
+API_KEY = os.getenv("LLM_API_KEY", None)
+
 #-----------------------------------------------------------------------------#
 # UTIL FUNCTIONS
 #-----------------------------------------------------------------------------#
@@ -46,7 +49,10 @@ if __name__ == "__main__":
     # Function call. It gets a prompt and bool (return json on true).
     # This function is then parse to what ever subfunction needs a generator.
     print(f'Using:{LLM_PROVIDER} with {GEN_MODEL}')
-    generator_func = build_generator(provider = LLM_PROVIDER, model_name = GEN_MODEL)
+    generator_func = build_generator(provider = LLM_PROVIDER, 
+        model_name = GEN_MODEL,
+        api_key = API_KEY,
+        endpoint = GEN_ENDPOINT)
     # Loading previously computed fuzzy request just in case.
     if os.path.exists(f'{args.output}/fuzzy_service_request.json'):
         with open(f'{args.output}/fuzzy_service_request.json') as f:

@@ -1,23 +1,29 @@
 #-----------------------------------------------------------------------------#
 # IMPORT LIBS
 #-----------------------------------------------------------------------------#
-import ollama
 import numpy as np
+from typing import Callable
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import AgglomerativeClustering
 #-----------------------------------------------------------------------------#
 # FUNCTIONS
 #-----------------------------------------------------------------------------#
-def get_semantic_embeddings(prompts: list, model_name: str = "nomic-embed-text")-> np.array:
-    response = ollama.embed(
-        model=model_name,
-        input=prompts
-    )
-    return np.array(response['embeddings'], dtype=np.float32)
+def get_semantic_embeddings(embed_func:Callable ,prompts: list)-> np.ndarray:
+    # using this function for naming clarity
+    return embed_func(prompts)
+    
 
-def add_field_context(metadata:str) -> list:
-    context_fields = [[k,f'The metadata field "{k}" means {v[1]}'] for d in metadata for k,v in d.items()]
-    return context_fields
+def add_field_context(metadata: list) -> tuple[list, list]:
+    if not metadata:
+        return [], []
+
+    fields, contexts = zip(*(
+        (k, f'The metadata field "{k}" means {v[1]}') 
+        for d in metadata 
+        for k, v in d.items()
+    ))
+    
+    return list(fields), list(contexts)
 
 
 
@@ -34,25 +40,26 @@ def semantic_clusters(embeddings, threshold: float = 0.1)-> tuple:
     ).fit(distance_matrix)
     return clusters, distance_matrix
 
-def semantic_stripping(metadata: list, exclude_subject: list, 
-                       exclusion_threshold: float = 0.7, 
-                       model_name: str = "nomic-embed-text")->dict:
-    # Get keys that are not semantically relevant
+def semantic_stripping(embed_func:Callable, metadata: list, exclude_subject: list, 
+                       exclusion_threshold: float = 0.7
+)->dict:
+    # Return meta data if no exclusion terms provided
+    if not exclude_subject:
+        return metadata
+     # Get keys that are not semantically relevant
+    fields,context = add_field_context(metadata)
     
-    context_fields = add_field_context(metadata)
-    context = [context[1] for context in context_fields]
-    metadata_semantics = get_semantic_embeddings(context, model_name=model_name)
-    exclusion_semantics = get_semantic_embeddings(exclude_subject, model_name=model_name)
+    metadata_semantics = get_semantic_embeddings(embed_func, context)
+    exclusion_semantics = get_semantic_embeddings(embed_func, exclude_subject)
     
     distance = cosine_similarity(exclusion_semantics, metadata_semantics)  # (n_subjects, n_keys)
     
     # Keep keys where NO exclusion subject exceeds the threshold
     keep_mask = ~(distance >= exclusion_threshold).any(axis=0)
-    keep_fields = [f[0] for f in context_fields]
-    keep_fields = np.array(keep_fields)[keep_mask]
+    fields = np.array(fields)[keep_mask]
 
     stripped_metadata = [
-        {k: v for k, v in d.items() if k in set(keep_fields)}
+        {k: v for k, v in d.items() if k in set(fields)}
         for d in metadata
     ]
     return stripped_metadata
