@@ -22,7 +22,7 @@ def add_field_context(metadata: list) -> tuple[list, list]:
 
     fields, contexts = zip(
         *(
-            (k, f'The metadata field "{k}" means {v[1]}')
+            (k, f'The context of field "{k}" is: {v[1]}')
             for d in metadata
             for k, v in d.items()
         )

@@ -26,10 +26,11 @@ pip install -e .
 pip install -e .[dev]
 ```
 
-**Quickstart / Example**
+**Quickstart**
 1. Prepare a JSON metadata file (a list of dicts). Example dataset files are located in the `data/` directory.
 2. (Optional) Create an `env/.env` file to set provider configuration (see Configuration below).
-3. Run the CLI runner to produce visualization outputs:
+3. (Optional) If you are using `ollama` locally, run `ollama serve & disown` first.
+4. Run the CLI runner to produce visualization outputs:
 
 ```bash
 python src/metaSolid/run_metaSolid.py --metadata data/fuzzy_ablated_requests.json --output data/

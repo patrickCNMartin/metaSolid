@@ -15,6 +15,7 @@ from metaSolid.semantics import (
     semantic_clusters,
     semantic_stripping,
 )
+from metaSolid.harmonize import harmonize_fields
 from metaSolid.visualize import plot_dendrogram_and_heatmap, plot_word_cloud_umap
 from providers.embedders import build_embedder
 from providers.generators import build_generator
@@ -107,23 +108,23 @@ if __name__ == "__main__":
         exclusion_threshold=SEMANTIC_THRESHOLD,
     )
     fields, context_fields = add_field_context(filtered_metadata)
-    # adding context to key for semantic embeddings and pull associated key
-    # I think this could be improved. The aim was to make it a bit more flexible
-    # but I end up going back and forth with stuff - wasted compute
-
     embeddings = get_semantic_embeddings(embedder_func, prompts=context_fields)
     clusters, distance_matrix = semantic_clusters(embeddings=embeddings)
 
-    # import pdb;pdb.set_trace()
+    # Plot semantic clusters 
     fig, ax = plt.subplots(figsize=(23, 23))
     plot_dendrogram_and_heatmap(fields, clusters, distance_matrix, fig=fig)
     ax.tick_params(axis="x", labelsize=8)
     plt.savefig(f"{args.output}/semantic_clusters.png", dpi=300, bbox_inches="tight")
-    # plt.show()
+   
 
     fig, ax = plt.subplots(figsize=(12, 6))
     plot_word_cloud_umap(fields, embeddings, ax=ax)
     ax.tick_params(axis="x", labelsize=8)
     plt.tight_layout()
     plt.savefig(f"{args.output}/semantic_word_cloud.png", dpi=300, bbox_inches="tight")
-    # plt.show()
+    
+    # Harmonize meta data labels
+    harmonized_fields = harmonize_fields(generator_func, clusters, context_fields, field_only=False)
+    with open(f"{args.output}/harmonzied_metadata_fields.json", "w") as f:
+        json.dump(harmonized_fields, f)

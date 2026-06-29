@@ -14,6 +14,7 @@ from synthetic.synthetic_utils import (
     augment_context,
     flatten_dict,
     generate_label,
+    update_context
 )
 
 # -----------------------------------------------------------------------------#
@@ -95,10 +96,19 @@ if __name__ == "__main__":
 
         fuzzy_requests = [
             {
-                generate_label(generator_func, k, 1, ck): [v, cv]
+                generate_label(generator_func, k, 1, ck): [v if v is not None else None, cv]
                 for (k, v), (ck, cv) in zip(req.items(), cont.items())
             }
             for req, cont in zip(requests, context_augmentation)
+        ]
+        #import pdb;pdb.set_trace()
+        fuzzy_requests = [
+            {   
+                k: [v[0], update_context(generator_func, k, v[1])] if isinstance(v, (list, tuple))
+                    else [None, update_context(generator_func, k, v[1])]
+                for k,v in req.items() 
+            }
+            for req in fuzzy_requests
         ]
         with open(f"{args.output}/fuzzy_service_request.json", "w") as f:
             json.dump(fuzzy_requests, f)

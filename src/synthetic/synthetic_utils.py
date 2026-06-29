@@ -50,6 +50,15 @@ def augment_context(
     print(f"Augmented Context: {context_augmentation['label']}")
     return context_augmentation
 
+def update_context(generator_func, key, value)-> str:
+    prompt = (f"Given the following metadata field '{key}'' "
+              f"and a example context: '{value}'' "
+              f"Propose a new context that explain the meta data field '{key}'. "
+              f"Keep it to a maximum of 50 words. ONLY return the new context. "
+              f"Only use english terms.")
+    new_context = generator_func(prompt, return_json = False)
+    print(f'Updated context : {new_context}')
+    return new_context
 
 def ablate_metadata(metadata: dict, ablation_frac: float = 0.2) -> dict:
     n_fields = len(metadata) - (len(metadata) * ablation_frac)
