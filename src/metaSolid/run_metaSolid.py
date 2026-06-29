@@ -9,13 +9,13 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 
+from metaSolid.harmonize import harmonize_fields
 from metaSolid.semantics import (
     add_field_context,
     get_semantic_embeddings,
     semantic_clusters,
     semantic_stripping,
 )
-from metaSolid.harmonize import harmonize_fields
 from metaSolid.visualize import plot_dendrogram_and_heatmap, plot_word_cloud_umap
 from providers.embedders import build_embedder
 from providers.generators import build_generator
@@ -111,20 +111,21 @@ if __name__ == "__main__":
     embeddings = get_semantic_embeddings(embedder_func, prompts=context_fields)
     clusters, distance_matrix = semantic_clusters(embeddings=embeddings)
 
-    # Plot semantic clusters 
+    # Plot semantic clusters
     fig, ax = plt.subplots(figsize=(23, 23))
     plot_dendrogram_and_heatmap(fields, clusters, distance_matrix, fig=fig)
     ax.tick_params(axis="x", labelsize=8)
     plt.savefig(f"{args.output}/semantic_clusters.png", dpi=300, bbox_inches="tight")
-   
 
     fig, ax = plt.subplots(figsize=(12, 6))
     plot_word_cloud_umap(fields, embeddings, ax=ax)
     ax.tick_params(axis="x", labelsize=8)
     plt.tight_layout()
     plt.savefig(f"{args.output}/semantic_word_cloud.png", dpi=300, bbox_inches="tight")
-    
+
     # Harmonize meta data labels
-    harmonized_fields = harmonize_fields(generator_func, clusters, context_fields, field_only=False)
+    harmonized_fields = harmonize_fields(
+        generator_func, clusters, context_fields, field_only=False
+    )
     with open(f"{args.output}/harmonzied_metadata_fields.json", "w") as f:
         json.dump(harmonized_fields, f)
