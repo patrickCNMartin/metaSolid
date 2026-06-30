@@ -3,13 +3,14 @@
 # -----------------------------------------------------------------------------#
 import argparse
 import json
+import yaml
 import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 
-from metaSolid.harmonize import harmonize_fields
+from metaSolid.harmonize import (harmonize_fields,create_hiarchy)
 from metaSolid.semantics import (
     add_field_context,
     get_semantic_embeddings,
@@ -38,7 +39,7 @@ EMBED_ENDPOINT = os.getenv("EMBED_ENDPOINT", "http://localhost:11434/v1/embeddin
 EMBED_API_KEY = os.getenv("EMBED_API_KEY", None)
 
 SEMANTIC_THRESHOLD = float(os.getenv("SEMANTIC_THRESHOLD", 0.2))
-SEMANTIC_EXCLUSION = float(os.getenv("SEMANTIC_EXCLUSION", 0.8))
+SEMANTIC_EXCLUSION = float(os.getenv("SEMANTIC_EXCLUSION", 0.5))
 
 et = os.getenv("SEMANTIC_EXCLUSION_TERMS")
 EXCLUSION_TERMS = json.loads(et) if et else []
@@ -132,3 +133,10 @@ if __name__ == "__main__":
     )
     with open(f"{args.output}/harmonzied_metadata_fields.json", "w") as f:
         json.dump(harmonized_fields, f)
+    
+    # Create YAML hiarchy file
+    hiarchy_file = create_hiarchy(
+        generator_func, harmonized_fields, max_depth = 2
+    )
+    with open(f"{args.output}/hiarchy_metadata_fields.yaml", "w") as f:
+        f.write(hiarchy_file)

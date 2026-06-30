@@ -2,8 +2,8 @@
 # IMPORT LIBS
 # -----------------------------------------------------------------------------#
 from typing import Callable
-
 import numpy as np
+import re
 
 
 # -----------------------------------------------------------------------------#
@@ -45,3 +45,16 @@ def prepare_harmonization_prompt(fields, field_only: bool = True):
             f"the new harmonized field label. "
         )
     return prompt
+
+
+def create_hiarchy(generator_func:Callable,metadata:dict, max_depth:int = 2):
+    prompt = (f"Read this json structured text. Create an appropriate hiarchy. "
+              f"The hiarchy should represent metadata fields and sub-categories within those fields. "
+              f"Return the meta data field as a YAML structured document. "
+              f"Field should be the YAML titles. The description can be the field value. "
+              f"The YAML hiarchy should not exceed a dept of {max_depth}"
+              f"{metadata}")
+    response = generator_func(prompt, return_json = False)
+    response = re.sub("```","",response)
+    response = re.sub("yaml","",response)
+    return response
