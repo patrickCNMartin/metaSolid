@@ -3,7 +3,7 @@
 !.gitignore
 
 # Whitelist directories
-!.github/workflows/
+!.github/
 !tests/
 !src/
 !ollama-models/
@@ -32,4 +32,4 @@
 ## Modelfiles ##
 !ollama/*.modelfile
 # GitHub Actions
-!.github/workflows/*.yaml
+!.github/*.yaml
