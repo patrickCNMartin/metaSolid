@@ -1,35 +1,60 @@
-# Selective Git
+# ==========================================
+# 1. THE DEFAULT BLANKET IGNORE
+# ==========================================
+# Ignore everything at every level by default
 *
-!.gitignore
 
-# Whitelist directories
+# ==========================================
+# 2. OPEN THE TOP-LEVEL DOORS (Directories)
+# ==========================================
+# We must explicitly tell Git it's allowed to step into these folders
 !.github/
+!.github/workflows/
 !tests/
 !src/
 !ollama-models/
 !env/
 !security/
 
-# Whitelist Assets #
-# README
+# ==========================================
+# GLOBAL BLACKLISTS 
+# ==========================================
+# Even inside un-ignored folders, explicitly block python cache and logs
+**/__pycache__/
+**/*.pyc
+ollama-models/logs/
+src/*.egg-info/
+
+# ==========================================
+# WHITELISTED ASSETS & CONFIGS
+# ==========================================
+!.gitignore
 !README.md
-# Security files
-!security/.secrets.baseline
-# Pre-commit config/ pre-push
 !.pre-commit-config.yaml
-# Adding example env
+!security/.secrets.baseline
+
+# Environments
 !env/.env.example
-## Nix Files ##
+
+# Nix & Package Management
 !flake.lock
 !flake.nix
-## Uv files
 !pyproject.toml
 !uv.lock
-## Source code ##
-!src/*.py
-## Testing ##
-!tests/*.py
-## Modelfiles ##
-!ollama/*.modelfile
-# GitHub Actions
-!.github/*.yaml
+
+# ==========================================
+# RECURSIVE SOURCE CODE & ASSETS WHITELIST
+# ==========================================
+
+!src/**/*.py
+#!src/**/*.ipynb
+
+## Testing
+!tests/**/*.py
+
+## Modelfiles
+!ollama-models/**/*.modelfile
+
+## GitHub Actions
+!.github/workflows/**/*.yaml
+!.github/workflows/**/*.yml
