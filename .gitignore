@@ -1,13 +1,11 @@
 # ==========================================
-# 1. THE DEFAULT BLANKET IGNORE
+# IGNORE EVERTHING
 # ==========================================
-# Ignore everything at every level by default
 *
 
 # ==========================================
-# 2. OPEN THE TOP-LEVEL DOORS (Directories)
+# TOP LEVEL DIRECTORIES
 # ==========================================
-# We must explicitly tell Git it's allowed to step into these folders
 !.github/
 !.github/workflows/
 !tests/
@@ -19,7 +17,6 @@
 # ==========================================
 # GLOBAL BLACKLISTS 
 # ==========================================
-# Even inside un-ignored folders, explicitly block python cache and logs
 **/__pycache__/
 **/*.pyc
 ollama-models/logs/
