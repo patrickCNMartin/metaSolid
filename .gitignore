@@ -20,3 +20,5 @@
 !tests/*.py
 ## Modelfiles ##
 !ollama/*.modelfile
+# GitHub Actions
+!.github/workflows/*.yaml
