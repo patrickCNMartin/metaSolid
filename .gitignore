@@ -3,7 +3,7 @@
 !.gitignore
 
 # Whitelist directories
-!.github/
+!.github/workflows/
 !tests/
 !src/
 !ollama-models/
