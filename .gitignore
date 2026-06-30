@@ -16,5 +16,7 @@
 !uv.lock
 ## Source code ##
 !src/*.py
+## Testing ##
+!tests/*.py
 ## Modelfiles ##
 !ollama/*.modelfile
