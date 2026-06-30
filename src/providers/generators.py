@@ -75,7 +75,7 @@ def build_generator(
             raw_contents = response_data["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError):
             raise RuntimeError(
-                "Malformed response during text generation: {response_data}"
+                f"Malformed response during text generation: {response_data}"
             )
 
         # If we need a json and not just text we format and
@@ -84,7 +84,7 @@ def build_generator(
             try:
                 return json.loads(raw_contents)
             except (json.JSONDecodeError, TypeError):
-                raise RuntimeError("Cannot build json from contents: {raw_contents}")
+                raise RuntimeError(f"Cannot build json from contents: {raw_contents}")
 
         return raw_contents
 
