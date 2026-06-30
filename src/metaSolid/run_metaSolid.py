@@ -42,6 +42,8 @@ SEMANTIC_EXCLUSION = float(os.getenv("SEMANTIC_EXCLUSION", 0.8))
 
 et = os.getenv("SEMANTIC_EXCLUSION_TERMS")
 EXCLUSION_TERMS = json.loads(et) if et else []
+
+
 # -----------------------------------------------------------------------------#
 # UTIL FUNCTIONS
 # -----------------------------------------------------------------------------#
@@ -108,8 +110,9 @@ if __name__ == "__main__":
     )
     fields, context_fields = add_field_context(filtered_metadata)
     embeddings = get_semantic_embeddings(embedder_func, prompts=context_fields)
-    clusters, distance_matrix = semantic_clusters(embeddings=embeddings,
-                                                  threshold=SEMANTIC_THRESHOLD)
+    clusters, distance_matrix = semantic_clusters(
+        embeddings=embeddings, threshold=SEMANTIC_THRESHOLD
+    )
 
     # Plot semantic clusters
     fig, ax = plt.subplots(figsize=(23, 23))
