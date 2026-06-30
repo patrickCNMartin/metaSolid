@@ -1,16 +1,14 @@
 import sys
 from pathlib import Path
 
-import pytest
-
 # Ensure `src` is on sys.path so imports work when running pytest from project root
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from synthetic.synthetic_utils import (
-    flatten_dict,
     ablate_metadata,
-    generate_label,
     augment_context,
+    flatten_dict,
+    generate_label,
     update_context,
 )
 
