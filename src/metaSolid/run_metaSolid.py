@@ -3,14 +3,13 @@
 # -----------------------------------------------------------------------------#
 import argparse
 import json
-import yaml
 import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 
-from metaSolid.harmonize import (harmonize_fields,create_hiarchy)
+from metaSolid.harmonize import create_hiarchy, harmonize_fields
 from metaSolid.semantics import (
     add_field_context,
     get_semantic_embeddings,
@@ -133,10 +132,8 @@ if __name__ == "__main__":
     )
     with open(f"{args.output}/harmonzied_metadata_fields.json", "w") as f:
         json.dump(harmonized_fields, f)
-    
+
     # Create YAML hiarchy file
-    hiarchy_file = create_hiarchy(
-        generator_func, harmonized_fields, max_depth = 2
-    )
+    hiarchy_file = create_hiarchy(generator_func, harmonized_fields, max_depth=2)
     with open(f"{args.output}/hiarchy_metadata_fields.yaml", "w") as f:
         f.write(hiarchy_file)
