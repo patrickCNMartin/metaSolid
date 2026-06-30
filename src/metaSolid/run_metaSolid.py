@@ -38,11 +38,10 @@ EMBED_ENDPOINT = os.getenv("EMBED_ENDPOINT", "http://localhost:11434/v1/embeddin
 EMBED_API_KEY = os.getenv("EMBED_API_KEY", None)
 
 SEMANTIC_THRESHOLD = float(os.getenv("SEMANTIC_THRESHOLD", 0.2))
+SEMANTIC_EXCLUSION = float(os.getenv("SEMANTIC_EXCLUSION", 0.8))
 
-et = os.getenv("EXCLUSION_TERMS")
+et = os.getenv("SEMANTIC_EXCLUSION_TERMS")
 EXCLUSION_TERMS = json.loads(et) if et else []
-
-
 # -----------------------------------------------------------------------------#
 # UTIL FUNCTIONS
 # -----------------------------------------------------------------------------#
@@ -105,11 +104,12 @@ if __name__ == "__main__":
         embedder_func,
         metadata=metadata,
         exclude_subject=EXCLUSION_TERMS,
-        exclusion_threshold=SEMANTIC_THRESHOLD,
+        exclusion_threshold=SEMANTIC_EXCLUSION,
     )
     fields, context_fields = add_field_context(filtered_metadata)
     embeddings = get_semantic_embeddings(embedder_func, prompts=context_fields)
-    clusters, distance_matrix = semantic_clusters(embeddings=embeddings)
+    clusters, distance_matrix = semantic_clusters(embeddings=embeddings,
+                                                  threshold=SEMANTIC_THRESHOLD)
 
     # Plot semantic clusters
     fig, ax = plt.subplots(figsize=(23, 23))

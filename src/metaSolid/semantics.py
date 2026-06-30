@@ -66,7 +66,6 @@ def semantic_stripping(
     # Keep keys where NO exclusion subject exceeds the threshold
     keep_mask = ~(distance >= exclusion_threshold).any(axis=0)
     fields = np.array(fields)[keep_mask]
-
     stripped_metadata = [
         {k: v for k, v in d.items() if k in set(fields)} for d in metadata
     ]
