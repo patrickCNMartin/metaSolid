@@ -18,8 +18,7 @@ def test_run_meta_parse_args_missing(monkeypatch):
 
 def test_run_meta_parse_args_ok(monkeypatch):
     monkeypatch.setattr(
-        sys, "argv", ["run_meta", "--metadata",
-                      "meta.json", "--output", "outdir"]
+        sys, "argv", ["run_meta", "--metadata", "meta.json", "--output", "outdir"]
     )
     ns = run_meta.parse_args()
     assert ns.metadata == "meta.json"
@@ -34,8 +33,7 @@ def test_synth_ilab_parse_args_missing(monkeypatch):
 
 def test_synth_ilab_parse_args_ok(monkeypatch):
     monkeypatch.setattr(
-        sys, "argv", ["synth_ilab", "--metadata",
-                      "meta.json", "--output", "outdir"]
+        sys, "argv", ["synth_ilab", "--metadata", "meta.json", "--output", "outdir"]
     )
     ns = synth_ilab.parse_args()
     assert ns.metadata == "meta.json"
