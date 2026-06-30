@@ -1,11 +1,22 @@
 # Selective Git
 *
 !.gitignore
-!.pre-commit-config.yaml
-!security/.secrets.baseline
-!README.md
 
-# Whitelisted Assets #
+# Whitelist directories
+!.github/
+!tests/
+!src/
+!ollama-models/
+!env/
+!security/
+
+# Whitelist Assets #
+# README
+!README.md
+# Security files
+!security/.secrets.baseline
+# Pre-commit config/ pre-push
+!.pre-commit-config.yaml
 # Adding example env
 !env/.env.example
 ## Nix Files ##
