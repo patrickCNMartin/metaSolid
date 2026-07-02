@@ -3,9 +3,12 @@
 # -----------------------------------------------------------------------------#
 import re
 from typing import Callable
+
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from .semantics import add_field_context,get_semantic_embeddings
+
+from .semantics import add_field_context, get_semantic_embeddings
+
 
 # -----------------------------------------------------------------------------#
 # FUNCTIONS
@@ -48,7 +51,9 @@ def prepare_harmonization_prompt(fields, field_only: bool = True):
     return prompt
 
 
-def harmonize_to_target(embed_func: Callable, metadata: dict, target: dict, semantic_threshold: float = 0.8):
+def harmonize_to_target(
+    embed_func: Callable, metadata: dict, target: dict, semantic_threshold: float = 0.8
+):
     fields, context = add_field_context([metadata])
     target_fields, target_context = add_field_context([target])
 
