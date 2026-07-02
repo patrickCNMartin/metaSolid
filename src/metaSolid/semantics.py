@@ -59,12 +59,12 @@ def semantic_stripping(
     metadata_semantics = get_semantic_embeddings(embed_func, context)
     exclusion_semantics = get_semantic_embeddings(embed_func, exclude_subject)
 
-    distance = cosine_similarity(
+    similarity = cosine_similarity(
         exclusion_semantics, metadata_semantics
     )  # (n_subjects, n_keys)
 
     # Keep keys where NO exclusion subject exceeds the threshold
-    keep_mask = ~(distance >= exclusion_threshold).any(axis=0)
+    keep_mask = ~(similarity >= exclusion_threshold).any(axis=0)
     fields = np.array(fields)[keep_mask]
     stripped_metadata = [
         {k: v for k, v in d.items() if k in set(fields)} for d in metadata

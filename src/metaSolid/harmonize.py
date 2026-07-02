@@ -3,9 +3,9 @@
 # -----------------------------------------------------------------------------#
 import re
 from typing import Callable
-
 import numpy as np
-
+from sklearn.metrics.pairwise import cosine_similarity
+from .semantics import add_field_context,get_semantic_embeddings
 
 # -----------------------------------------------------------------------------#
 # FUNCTIONS
@@ -46,6 +46,32 @@ def prepare_harmonization_prompt(fields, field_only: bool = True):
             f"the new harmonized field label. "
         )
     return prompt
+
+
+def harmonize_to_target(embed_func: Callable, metadata: dict, target: dict, semantic_threshold: float = 0.8):
+    fields, context = add_field_context([metadata])
+    target_fields, target_context = add_field_context([target])
+
+    metadata_semantics = get_semantic_embeddings(embed_func, context)
+    target_semantics = get_semantic_embeddings(embed_func, target_context)
+
+    similarity = cosine_similarity(target_semantics, metadata_semantics)
+
+    best_target_idx = similarity.argmax(axis=0)
+    best_score = similarity[best_target_idx, range(len(fields))]
+    matched = best_score >= semantic_threshold
+
+    harmonized = {}
+    for field, t_idx, is_match in zip(fields, best_target_idx, matched):
+        if not is_match:
+            continue
+        t_key = target_fields[t_idx]
+        harmonized.setdefault(t_key, []).append(metadata[field])
+
+    unmatched_metadata = {f: metadata[f] for f, m in zip(fields, matched) if not m}
+    unmatched_target = {t: target[t] for t in target_fields if t not in harmonized}
+
+    return harmonized, unmatched_metadata, unmatched_target
 
 
 def create_hiarchy(generator_func: Callable, metadata: dict, max_depth: int = 2):

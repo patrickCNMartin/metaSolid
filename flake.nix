@@ -24,47 +24,60 @@
                         git
                         uv;         
                 };
-
-                # Ollama runtime for dev phase
-                # This is remove for now because of how nix handles the new xcode requirement with 
-                # metalToolChain
-                # Currently being fixed - but not working yet
-                # llm_deps = builtins.attrValues {
-                #     inherit (pkgs) ollama;
-                # };
                 
-                # python only - not sure if i want to add packages here or not
                 pythonBase = pkgs.python313;
+
+                # Runtime dependencies for the OCI Image (equivalent to devShell layers)
+                oci_deps = [
+                    pythonBase
+                    pkgs.uv
+                    pkgs.cacert # Essential for HTTPS requests within python/uv
+                    pkgs.bashInteractive
+                    pkgs.coreutils
+                ];
+
+                # A robust entrypoint script that dynamically injects the .env file from env/ at runtime
+                entrypointScript = pkgs.writeScriptBin "entrypoint.sh" ''
+                    #!${pkgs.bashInteractive}/bin/bash
+                    set -e
+
+                    ENV_FILE="env/.env"
+
+                    if [ -f "$ENV_FILE" ]; then
+                        echo "====> Loading runtime environment from $ENV_FILE <===="
+                        # Export variables while ignoring comments and empty lines
+                        export $(grep -v '^#' "$ENV_FILE" | xargs)
+                    else
+                        echo "====> Warning: Runtime configuration file '$ENV_FILE' not found. <===="
+                    fi
+
+                    # Execute the passed CMD/arguments container-side
+                    exec "$@"
+                '';
 
             in {
                 
                 devShells.default = pkgs.mkShell {
-                    # darwin_frameworks will evaluate to [] on Linux, keeping it perfectly pure and agnostic
-                    buildInputs = core_deps  ++ [ pythonBase ];
+                    buildInputs = core_deps ++ [ pythonBase ];
 
                     shellHook = ''
                         echo "====> metaSolid dev Shell <===="
                     
-                        # Point uv at the nix python so it doesn't download its own
                         export UV_PYTHON="${pythonBase}/bin/python3"
                         export VIRTUAL_ENV=".venv"
 
-                        # Create venv if it doesn't exist
                         if [ ! -d ".venv" ]; then
                             echo "====> Creating uv venv <===="
                             uv venv .venv --python "${pythonBase}/bin/python3"
                         fi
 
-                        # Activate venv
                         source .venv/bin/activate
 
-                        # Sync deps from pyproject.toml if it exists
                         if [ -f "pyproject.toml" ]; then
                             echo "====> Syncing deps from pyproject.toml <===="
                             uv sync
                         fi
 
-                        # Register Jupyter kernel from venv
                         KERNEL_STAMP=".nix-kernel-stamp"
                         VENV_HASH=$(echo "$VIRTUAL_ENV" | md5sum | cut -d' ' -f1)
 
@@ -75,13 +88,7 @@
                                 --display-name "metaSolid Nix (3.13)"
                             echo "$VENV_HASH" > "$KERNEL_STAMP"
                         fi
-                        #-----------------------------------------------------#
-                        # Ollama set up
-                        # Only for dev
-                        # This might not be the best option for sharing dev shells!!!!
-                        # This is useful for full local but not very flexible
-                        # Makes to many assumptions about how to get access to the LLM
-                        #-----------------------------------------------------#
+
                         if [ ! -d "ollama-models" ]; then
                             mkdir -p ollama-models/logs
                         fi
@@ -89,24 +96,16 @@
                         if ! command -v ollama &> /dev/null; then
                             echo "ollama not found — install via: brew install ollama on Mac"
                             echo "Then run: ollama serve & disown"
-                            # Nix does not support this new metalToolChain require by the latest version of Ollama
-                            # To make a pure nix build use nixos-25.11 which calls Ollama 0.21.1
-                            # Don't forget to un-comment the llm-deps above and add them to the mkShell
                         fi
-                        # Start up Ollama if not already running
-                        # This should not be the case but just in case
+
                         if ! pgrep -x "ollama" > /dev/null; then
                             echo "====> Start Ollama <===="
                             ollama serve >> ollama-models/logs/ollama.log 2>&1 & disown
                         fi
-                        # Pull models - if already there they won't downloaded again 
-                        # Ollama handles that check. 
+
                         ollama pull nomic-embed-text
                         ollama pull qwen2.5:7b
                         ollama pull gemma4:12b 
-
-                        # Initialize Model File if they are not present
-                        # Can be customized later but he autobuild the "defaults"
 
                         if [ ! -f ollama-models/qwen2.5_7B.modelfile ]; then
                                 echo "====> Initializing Qwen Modelfile <===="
@@ -130,7 +129,6 @@ EOF
                                 ollama create gemma:v0.0.1 -f ollama-models/gemma4_12B.modelfile
                         fi
                         
-                        # Trap ollama to kill on nix session exit
                         trap 'pkill -x ollama' EXIT INT TERM
                         
                         echo -e "====> Available Models through Ollama: <====\n"
@@ -139,42 +137,20 @@ EOF
                     '';
                 };
 
-                # ── Thin OCI Image ───────────────────────────────────────────
-                # Contains: Python 3.13 + uv + your pyproject.toml deps
-                # Provides base image to run metaSolid
-                # This is needs to cleaned up because it sucks 
-                # and is stupid... 
-                packages.ociThin = pkgs.dockerTools.buildLayeredImage {
+                # ── Robust OCI Image ─────────────────────────────────────────
+                
+                packages.metaSolid = pkgs.dockerTools.buildLayeredImage {
                     name = "metasolid";
-                    tag  = "thin";
+                    tag  = "v0.0.1";
 
-                    contents = [
-                        pythonBase
-                        pkgs.uv
-                        pkgs.cacert          # needed for HTTPS in uv/pip
-                        pkgs.bash
-                        pkgs.coreutils
-                    ];
+                    contents = oci_deps ++ [ entrypointScript ];
 
                     config = {
-                        # OLLAMA_HOST lets users point at a remote/local Ollama instance
-                        Env = [
-                            "LLM_BACKEND=ollama"          # ollama | anthropic | openai
-                            "LLM_HOST=http://host.docker.internal:11434"  # ignored if not ollama
-                            "LLM_MODEL=llama3.2"
-                            "EMBED_MODEL=nomic-embed-text"
-                            "ANTHROPIC_API_KEY="          # empty, user provides
-                            "OPENAI_API_KEY="             # empty, user provides
-                        ];
-
-                        # Entrypoint TBD — drops to bash for now
-                        # Replace with: Cmd = [ "python" "-m" "metasolid" ];
-                        Cmd = [ "${pkgs.bash}/bin/bash" ];
-
+                        Entrypoint = [ "${entrypointScript}/bin/entrypoint.sh" ];
+                        Cmd = [ "${pkgs.bashInteractive}/bin/bash" ];
                         WorkingDir = "/app";
                     };
                 };
-
             }
         );
 }
