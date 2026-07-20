@@ -11,27 +11,25 @@ dependencies = [
     "scikit-learn",
     "umap-learn",
     "python-dateutil",
-    "zarr",
-    "dask",
 
     # Reporting & Figures
     "matplotlib",
-    "seaborn",
     "python-pptx",
 
     # LLM/DL
-    "ollama",
-    "dask-ml",
-    
+    # NOTE: no vendor SDKs by design -- all LLM/embedding access goes through
+    # plain `requests` against OpenAI-compatible HTTP endpoints.
 
     # Utilities
     "requests",
     "python-dotenv",
-    "jsons",
-    "matplotlib"
 ]
 
 [project.optional-dependencies]
+# Only needed by the exploratory notebooks under src/explore/.
+notebook = [
+    "seaborn",
+]
 dev = [
     "jupyterlab",
     "ipython",

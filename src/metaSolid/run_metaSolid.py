@@ -9,7 +9,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 
-from metaSolid.harmonize import create_hiarchy, harmonize_fields
+from metaSolid.harmonize import (create_hiarchy, harmonize_fields,harmonize_to_target)
 from metaSolid.semantics import (
     add_field_context,
     get_semantic_embeddings,
@@ -137,3 +137,10 @@ if __name__ == "__main__":
     hiarchy_file = create_hiarchy(generator_func, harmonized_fields, max_depth=2)
     with open(f"{args.output}/hiarchy_metadata_fields.yaml", "w") as f:
         f.write(hiarchy_file)
+
+    # Let try harmonzing to a target
+    target = filtered_metadata[0]
+    darts = filtered_metadata[1:]
+    harmonized_metadata = [harmonize_to_target(embedder_func,m,target, SEMANTIC_THRESHOLD) for m in darts]
+    with open(f"{args.output}/harmonzied_metadata.json", "w") as f:
+        json.dump(harmonized_metadata, f)

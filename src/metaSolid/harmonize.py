@@ -91,6 +91,13 @@ def create_hiarchy(generator_func: Callable, metadata: dict, max_depth: int = 2)
         f"{metadata}"
     )
     response = generator_func(prompt, return_json=False)
-    response = re.sub("```", "", response)
-    response = re.sub("yaml", "", response)
-    return response
+    # Strip the code-fence markers only (```yaml ... ```), not every literal
+    # occurrence of "yaml" -- a harmonized field or description may legitimately
+    # contain the word.
+    response = re.sub(
+        r"^\s*```[ \t]*[A-Za-z0-9_+-]*[ \t]*$",
+        "",
+        response,
+        flags=re.MULTILINE,
+    )
+    return response.strip()

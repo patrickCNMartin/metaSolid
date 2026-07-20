@@ -13,47 +13,98 @@
                     config.allowUnfree = true;
                 };
 
-                # System-level tools
+                # System-level tools.
+                #
+                # THIS LIST IS FOR NON-PYTHON SYSTEM DEPENDENCIES ONLY.
+                # Every Python package and every Python-based tool (pytest,
+                # ruff, pre-commit, jupyter) belongs in pyproject.toml, which is
+                # the single declaration shared by the uv / nix / pixi paths.
+                # Adding a Python application here re-creates the PYTHONPATH
+                # shadowing bug fixed on 2026-07-20: Nix propagates its closure
+                # into the shell, where it overrides the venv.
+                #
+                # The project currently has no system dependencies, so this is
+                # deliberately just the toolchain needed to bootstrap.
                 core_deps = builtins.attrValues {
                     inherit (pkgs)
-                        pkg-config
-                        gettext
-                        pandoc
-                        which
-                        pre-commit
                         git
-                        uv;         
+                        uv;
                 };
                 
                 pythonBase = pkgs.python313;
 
-                # Runtime dependencies for the OCI Image (equivalent to devShell layers)
-                oci_deps = [
-                    pythonBase
-                    pkgs.uv
-                    pkgs.cacert # Essential for HTTPS requests within python/uv
-                    pkgs.bashInteractive
-                    pkgs.coreutils
-                ];
+                # ── OCI image targets ────────────────────────────────────────
+                # An OCI image always contains *Linux* binaries: Docker Desktop
+                # on macOS runs a Linux VM, so there is no runnable "macOS
+                # image". The axis that actually varies is therefore the CPU
+                # architecture, not the OS.
+                #
+                # Default: match the host's architecture, so building on an
+                # Apple Silicon Mac yields an arm64 image and building on an
+                # x86 Linux box yields an amd64 one. Override by selecting an
+                # explicit attribute (see `packages` below).
+                hostToImageSystem = {
+                    "x86_64-linux"   = "x86_64-linux";
+                    "aarch64-linux"  = "aarch64-linux";
+                    "x86_64-darwin"  = "x86_64-linux";
+                    "aarch64-darwin" = "aarch64-linux";
+                };
+                defaultImageSystem =
+                    hostToImageSystem.${system} or "x86_64-linux";
 
-                # A robust entrypoint script that dynamically injects the .env file from env/ at runtime
-                entrypointScript = pkgs.writeScriptBin "entrypoint.sh" ''
-                    #!${pkgs.bashInteractive}/bin/bash
-                    set -e
+                mkImage = targetSystem:
+                    let
+                        targetPkgs = import nixpkgs {
+                            system = targetSystem;
+                            config.allowUnfree = true;
+                        };
 
-                    ENV_FILE="env/.env"
+                        # Runtime deps for the OCI image (devShell layer equivalent)
+                        oci_deps = [
+                            targetPkgs.python313
+                            targetPkgs.uv
+                            targetPkgs.cacert # HTTPS for python/uv
+                            targetPkgs.bashInteractive
+                            targetPkgs.coreutils
+                        ];
 
-                    if [ -f "$ENV_FILE" ]; then
-                        echo "====> Loading runtime environment from $ENV_FILE <===="
-                        # Export variables while ignoring comments and empty lines
-                        export $(grep -v '^#' "$ENV_FILE" | xargs)
-                    else
-                        echo "====> Warning: Runtime configuration file '$ENV_FILE' not found. <===="
-                    fi
+                        # Entrypoint that injects env/.env at runtime.
+                        entrypointScript =
+                            targetPkgs.writeScriptBin "entrypoint.sh" ''
+                                #!${targetPkgs.bashInteractive}/bin/bash
+                                set -e
 
-                    # Execute the passed CMD/arguments container-side
-                    exec "$@"
-                '';
+                                ENV_FILE="env/.env"
+
+                                if [ -f "$ENV_FILE" ]; then
+                                    echo "====> Loading runtime environment from $ENV_FILE <===="
+                                    # `set -a` exports everything the file defines.
+                                    # The previous `export $(grep -v '^#' ... | xargs)`
+                                    # word-split on spaces, so values such as
+                                    # REQUEST_TYPE = ["new", "assigned"] parsed wrong.
+                                    set -a
+                                    . "$ENV_FILE"
+                                    set +a
+                                else
+                                    echo "====> Warning: Runtime configuration file '$ENV_FILE' not found. <===="
+                                fi
+
+                                # Execute the passed CMD/arguments container-side
+                                exec "$@"
+                            '';
+                    in
+                    targetPkgs.dockerTools.buildLayeredImage {
+                        name = "metasolid";
+                        tag  = "v0.0.1";
+
+                        contents = oci_deps ++ [ entrypointScript ];
+
+                        config = {
+                            Entrypoint = [ "${entrypointScript}/bin/entrypoint.sh" ];
+                            Cmd = [ "${targetPkgs.bashInteractive}/bin/bash" ];
+                            WorkingDir = "/app";
+                        };
+                    };
 
             in {
                 
@@ -62,7 +113,14 @@
 
                     shellHook = ''
                         echo "====> metaSolid dev Shell <===="
-                    
+
+                        # Nix propagates the closure of every Python application in
+                        # buildInputs (pre-commit) onto PYTHONPATH, which shadows the
+                        # venv -- notably nixpkgs' pytest over the one uv installs.
+                        # The Nix layer owns the interpreter; pyproject/uv.lock own the
+                        # packages. Keep that boundary by starting from a clean path.
+                        unset PYTHONPATH
+
                         export UV_PYTHON="${pythonBase}/bin/python3"
                         export VIRTUAL_ENV=".venv"
 
@@ -75,7 +133,10 @@
 
                         if [ -f "pyproject.toml" ]; then
                             echo "====> Syncing deps from pyproject.toml <===="
-                            uv sync
+                            # --extra dev: a bare `uv sync` prunes anything not in the
+                            # default dependency set, which uninstalled pytest/ruff/
+                            # ipykernel on every shell entry.
+                            uv sync --extra dev
                         fi
 
                         KERNEL_STAMP=".nix-kernel-stamp"
@@ -138,18 +199,22 @@ EOF
                 };
 
                 # ── Robust OCI Image ─────────────────────────────────────────
-                
-                packages.metaSolid = pkgs.dockerTools.buildLayeredImage {
-                    name = "metasolid";
-                    tag  = "v0.0.1";
-
-                    contents = oci_deps ++ [ entrypointScript ];
-
-                    config = {
-                        Entrypoint = [ "${entrypointScript}/bin/entrypoint.sh" ];
-                        Cmd = [ "${pkgs.bashInteractive}/bin/bash" ];
-                        WorkingDir = "/app";
-                    };
+                #
+                #   nix build .#metaSolid          -> host architecture (default)
+                #   nix build .#metaSolid-amd64    -> force x86_64 image
+                #   nix build .#metaSolid-arm64    -> force aarch64 image
+                #
+                # NOTE (macOS): the explicit targets, and the default target on
+                # a Mac, build *Linux* binaries. Nix cannot produce those on a
+                # Darwin host by itself -- it needs a Linux builder. Either
+                # enable nix-darwin's `nix.linux-builder`, or configure a remote
+                # builder. Without one, `nix build .#metaSolid` on a Mac fails
+                # with "a 'aarch64-linux' with features {} is required to build".
+                packages = {
+                    metaSolid       = mkImage defaultImageSystem;
+                    metaSolid-amd64 = mkImage "x86_64-linux";
+                    metaSolid-arm64 = mkImage "aarch64-linux";
+                    default         = mkImage defaultImageSystem;
                 };
             }
         );

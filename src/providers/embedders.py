@@ -29,7 +29,7 @@ def build_embedder(
             headers = {"Content-Type": "application/json"}
             if api_key:
                 headers["Authorization"] = f"Bearer {api_key}"
-        case "opem-llm":
+        case "open-llm":
             url = endpoint or "https://openllm.scilifelab.se/api/embeddings"
             headers = {
                 "Authorization": f"Bearer {api_key}",
