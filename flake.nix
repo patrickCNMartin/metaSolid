@@ -34,11 +34,6 @@
                 pythonBase = pkgs.python313;
 
                 # ── OCI image targets ────────────────────────────────────────
-                # An OCI image always contains *Linux* binaries: Docker Desktop
-                # on macOS runs a Linux VM, so there is no runnable "macOS
-                # image". The axis that actually varies is therefore the CPU
-                # architecture, not the OS.
-                #
                 # Default: match the host's architecture, so building on an
                 # Apple Silicon Mac yields an arm64 image and building on an
                 # x86 Linux box yields an amd64 one. Override by selecting an
@@ -176,7 +171,7 @@ PARAMETER num_ctx 8000
 PARAMETER temperature 0.7
 PARAMETER repeat_penalty 1.1
 EOF
-                                ollama create qwen:v0.0.1 -f ollama-models/qwen2.5_7B.modelfile
+                                ollama create qwen:2.5_7B -f ollama-models/qwen2.5_7B.modelfile
                         fi
 
                         if [ ! -f ollama-models/gemma4_12B.modelfile ]; then
@@ -187,7 +182,7 @@ PARAMETER num_ctx 8000
 PARAMETER temperature 0.7
 PARAMETER repeat_penalty 1.1
 EOF
-                                ollama create gemma:v0.0.1 -f ollama-models/gemma4_12B.modelfile
+                                ollama create gemma:4_12B -f ollama-models/gemma4_12B.modelfile
                         fi
                         
                         trap 'pkill -x ollama' EXIT INT TERM
