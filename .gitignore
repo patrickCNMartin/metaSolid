@@ -1,57 +1,106 @@
-# ==========================================
-# IGNORE EVERTHING
-# ==========================================
-*
+
+.env
+.env.*
+*.env
+env/*
+
+# Key material and credential dumps, wherever they land.
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_ed25519
+*.credentials
+credentials.json
+secrets.json
+*_secret*
+*_token*
 
 # ==========================================
-# TOP LEVEL DIRECTORIES
+# RESEARCH DATA
 # ==========================================
-!.github/
-!.github/workflows/
-!tests/
-!src/
-!ollama-models/
-!env/
-!security/
+
+data/
 
 # ==========================================
-# GLOBAL BLACKLISTS 
+# PYTHON
 # ==========================================
-**/__pycache__/
-**/*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ==========================================
+# VIRTUAL ENVIRONMENTS
+# ==========================================
+.venv/
+venv/
+
+
+# ==========================================
+# TEST, COVERAGE & LINT CACHES
+# ==========================================
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# ==========================================
+# NIX
+# ==========================================
+result
+result-*
+.nix-kernel-stamp
+.direnv/
+
+# ==========================================
+# NOTEBOOKS
+# ==========================================
+*.ipynb
+.ipynb_checkpoints/
+
+# ==========================================
+# LOGS & RUNTIME OUTPUT
+# ==========================================
 ollama-models/logs/
-src/*.egg-info/
+*.log
 
 # ==========================================
-# WHITELISTED ASSETS & CONFIGS
+# EDITOR & OS
 # ==========================================
-!.gitignore
-!README.md
-!.pre-commit-config.yaml
-!security/.secrets.baseline
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
 
-# Environments
+# ==========================================
+# SCRATCH CODE
+# ==========================================
+src/explore/
+
+# ==========================================
+# LOCAL WORKING NOTES
+# ==========================================
+
+CLAUDE.md
+
+
+# ==========================================
+# RE-INCLUDES -- KEEP THIS SECTION LAST
+# ==========================================
+# env/.env.example -- the committed template, no real values.
 !env/.env.example
-
-# Nix & Package Management
-!flake.lock
-!flake.nix
-!pyproject.toml
-!uv.lock
-
-# ==========================================
-# RECURSIVE SOURCE CODE & ASSETS WHITELIST
-# ==========================================
-
-!src/**/*.py
-#!src/**/*.ipynb
-
-## Testing
-!tests/**/*.py
-
-## Modelfiles
-!ollama-models/**/*.modelfile
-
-## GitHub Actions
-!.github/workflows/**/*.yaml
-!.github/workflows/**/*.yml
+# The audited detect-secrets baseline records findings, not secrets.
+!security/.secrets.baseline
