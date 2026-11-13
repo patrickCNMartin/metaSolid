@@ -106,14 +106,14 @@ def main(argv=None):
     filtered = semantic_stripping(embed, records, exclusion_terms, exclusion)
     fields, contexts = add_field_context(filtered)
     embeddings = embed(contexts)
-    clusters, distances = semantic_clusters(embeddings, threshold=threshold)
+    labels, tree, distances = semantic_clusters(embeddings, threshold=threshold)
 
     fig = plt.figure(figsize=(23, 23))
-    plot_dendrogram_and_heatmap(fields, clusters, distances, fig=fig)
+    plot_dendrogram_and_heatmap(fields, tree, distances, fig=fig)
     fig.savefig(output / "semantic_clusters.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
-    harmonized = harmonize_fields(generate, clusters, contexts, field_only=False)
+    harmonized = harmonize_fields(generate, labels, contexts, field_only=False)
     with open(output / "harmonized_metadata_fields.json", "w") as f:
         json.dump(harmonized, f, indent=2)
 

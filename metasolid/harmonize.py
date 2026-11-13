@@ -4,20 +4,19 @@ import re
 from typing import Callable
 
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
+from scipy.spatial.distance import cdist
 
 from metasolid.semantics import add_field_context
 
 
 def harmonize_fields(
-    generator_func: Callable, cluster, fields, field_only: bool = True
+    generator_func: Callable, labels, fields, field_only: bool = True
 ) -> dict:
     """One harmonized label per cluster, merged into one dict."""
-    cluster_labels = cluster.labels_
     fields = np.array(fields)
     harmonized_fields = {}
-    for cl in set(cluster_labels):
-        prompt = prepare_harmonization_prompt(fields[cluster_labels == cl], field_only)
+    for cl in np.unique(labels):
+        prompt = prepare_harmonization_prompt(fields[labels == cl], field_only)
         harmonized_field = generator_func(prompt)
         print(f"Harmonized Field Label: {harmonized_field}")
         harmonized_fields.update(harmonized_field)
@@ -54,7 +53,7 @@ def harmonize_to_target(
     fields, context = add_field_context([metadata])
     target_fields, target_context = add_field_context([target])
 
-    similarity = cosine_similarity(embed_func(target_context), embed_func(context))
+    similarity = 1 - cdist(embed_func(target_context), embed_func(context), "cosine")
     best_target_idx = similarity.argmax(axis=0)
     best_score = similarity[best_target_idx, range(len(fields))]
     matched = best_score >= semantic_threshold

@@ -6,7 +6,7 @@ from scipy.cluster.hierarchy import dendrogram
 
 
 def plot_dendrogram_and_heatmap(
-    unique_keys, model, distance_matrix, threshold: float = 0.2, fig=None
+    unique_keys, tree, distance_matrix, threshold: float = 0.2, fig=None
 ):
     if fig is None:
         fig = plt.gcf()
@@ -18,14 +18,12 @@ def plot_dendrogram_and_heatmap(
     ax_heat = fig.add_subplot(gs[1, 0])
     ax_cbar = fig.add_subplot(gs[0, 1])
 
-    counts = np.zeros(model.children_.shape[0])
-    n = len(unique_keys)
-    for i, merge in enumerate(model.children_):
-        counts[i] = sum(1 if c < n else counts[c - n] for c in merge)
-
-    Z = np.column_stack([model.children_, model.distances_, counts])
     ddata = dendrogram(
-        Z, labels=unique_keys, color_threshold=threshold, leaf_rotation=90, ax=ax_dendro
+        tree,
+        labels=unique_keys,
+        color_threshold=threshold,
+        leaf_rotation=90,
+        ax=ax_dendro,
     )
 
     order = ddata["leaves"]
@@ -33,10 +31,8 @@ def plot_dendrogram_and_heatmap(
     ordered_labels = [unique_keys[i] for i in order]
 
     im = ax_heat.imshow(D_ordered, aspect="auto", cmap="viridis")
-    ax_heat.set_xticks(range(n))
-    ax_heat.set_yticks(range(n))
-    ax_heat.set_xticklabels(ordered_labels, rotation=90)
-    ax_heat.set_yticklabels(ordered_labels)
+    ax_heat.set_xticks(range(len(order)), ordered_labels, rotation=90)
+    ax_heat.set_yticks(range(len(order)), ordered_labels)
 
     plt.colorbar(im, cax=ax_cbar)
 

@@ -11,7 +11,6 @@ let
     deps = with py.pkgs; [
         numpy
         scipy
-        scikit-learn
         matplotlib
         pyyaml
         requests

@@ -1,4 +1,10 @@
-from metasolid.harmonize import create_hierarchy, harmonize_to_target
+import numpy as np
+
+from metasolid.harmonize import (
+    create_hierarchy,
+    harmonize_fields,
+    harmonize_to_target,
+)
 
 
 def _generator(response):
@@ -45,3 +51,16 @@ def test_harmonize_to_target_below_threshold_matches_nothing(records, one_hot_em
     assert harmonized == {}
     assert unmatched == records[1]
     assert unmatched_target == records[0]
+
+
+def test_harmonize_fields_asks_once_per_cluster():
+    prompts = []
+
+    def generate(prompt, return_json=True):
+        prompts.append(prompt)
+        return {f"label_{len(prompts)}": "explanation"}
+
+    labels = np.array([1, 1, 2])
+    out = harmonize_fields(generate, labels, ["alpha", "beta", "gamma"])
+    assert out == {"label_1": "explanation", "label_2": "explanation"}
+    assert "alpha beta" in prompts[0] and "gamma" in prompts[1]

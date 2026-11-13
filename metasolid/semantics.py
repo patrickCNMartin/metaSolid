@@ -3,8 +3,8 @@
 from typing import Callable
 
 import numpy as np
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.metrics.pairwise import cosine_similarity
+from scipy.cluster.hierarchy import fcluster, linkage
+from scipy.spatial.distance import cdist, pdist, squareform
 
 
 def add_field_context(metadata: list[dict]) -> tuple[list, list]:
@@ -22,17 +22,13 @@ def add_field_context(metadata: list[dict]) -> tuple[list, list]:
 
 
 def semantic_clusters(embeddings, threshold: float = 0.1) -> tuple:
-    """Average-linkage clusters cut at a cosine *distance* of `threshold`."""
-    similarity_matrix = cosine_similarity(embeddings)
-    distance_matrix = np.clip(1 - similarity_matrix, 0, 2)
-    clusters = AgglomerativeClustering(
-        metric="precomputed",
-        linkage="average",
-        distance_threshold=threshold,
-        n_clusters=None,
-        compute_distances=True,
-    ).fit(distance_matrix)
-    return clusters, distance_matrix
+    """Average-linkage clusters cut at a cosine *distance* of `threshold`.
+
+    Returns (label per field, linkage matrix, square distance matrix).
+    """
+    distances = np.clip(pdist(embeddings, "cosine"), 0, 2)
+    tree = linkage(distances, "average")
+    return fcluster(tree, threshold, "distance"), tree, squareform(distances)
 
 
 def semantic_stripping(
@@ -45,6 +41,6 @@ def semantic_stripping(
     if not exclude_subject:
         return metadata
     fields, context = add_field_context(metadata)
-    similarity = cosine_similarity(embed_func(exclude_subject), embed_func(context))
+    similarity = 1 - cdist(embed_func(exclude_subject), embed_func(context), "cosine")
     keep = set(np.array(fields)[~(similarity >= exclusion_threshold).any(axis=0)])
     return [{k: v for k, v in d.items() if k in keep} for d in metadata]

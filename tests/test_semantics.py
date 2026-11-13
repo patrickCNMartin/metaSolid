@@ -26,9 +26,10 @@ def test_semantic_stripping_drops_fields_close_to_an_excluded_term(records):
 
 
 def test_semantic_clusters_groups_identical_vectors():
-    clusters, distances = semantic_clusters(
+    labels, tree, distances = semantic_clusters(
         np.array([[1.0, 0.0], [1.0, 0.0], [0.0, 1.0]]), threshold=0.1
     )
-    a, b, c = clusters.labels_
+    a, b, c = labels
     assert a == b != c
+    assert tree.shape == (2, 4)
     assert distances.shape == (3, 3)
