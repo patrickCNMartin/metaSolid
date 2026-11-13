@@ -13,7 +13,7 @@ from metasolid.harmonize import create_hierarchy, harmonize_fields, harmonize_to
 from metasolid.providers import build_embedder, build_generator
 from metasolid.report import check_pdf_tools, render_pdf, write_report
 from metasolid.semantics import add_field_context, semantic_clusters, semantic_stripping
-from metasolid.visualize import plot_dendrogram_and_heatmap, plot_word_cloud_umap
+from metasolid.visualize import plot_dendrogram_and_heatmap
 
 
 def parse_args(argv=None):
@@ -113,13 +113,6 @@ def main(argv=None):
     fig.savefig(output / "semantic_clusters.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(12, 6))
-    plot_word_cloud_umap(fields, embeddings, ax=ax)
-    ax.tick_params(axis="x", labelsize=8)
-    fig.tight_layout()
-    fig.savefig(output / "semantic_word_cloud.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
-
     harmonized = harmonize_fields(generate, clusters, contexts, field_only=False)
     with open(output / "harmonized_metadata_fields.json", "w") as f:
         json.dump(harmonized, f, indent=2)
@@ -132,9 +125,7 @@ def main(argv=None):
     with open(output / "harmonized_metadata.json", "w") as f:
         json.dump(mapped, f, indent=2)
 
-    report = write_report(
-        output, ["semantic_clusters.png", "semantic_word_cloud.png"], harmonized
-    )
+    report = write_report(output, ["semantic_clusters.png"], harmonized)
     if args.render_report:
         render_pdf(report, output / "report.pdf")
 

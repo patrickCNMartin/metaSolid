@@ -1,8 +1,7 @@
-"""Dendrogram + distance heatmap, and a UMAP map of the field names."""
+"""Dendrogram + distance heatmap of the fields."""
 
 import matplotlib.pyplot as plt
 import numpy as np
-import umap
 from scipy.cluster.hierarchy import dendrogram
 
 
@@ -42,16 +41,3 @@ def plot_dendrogram_and_heatmap(
     plt.colorbar(im, cax=ax_cbar)
 
     return fig
-
-
-def plot_word_cloud_umap(
-    unique_keys, embeddings, n_neighbors: int = 5, min_dist: float = 0.3, ax=None
-):
-    if ax is None:
-        ax = plt.gca()
-    reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, metric="cosine")
-    coords = reducer.fit_transform(embeddings)
-    ax.scatter(coords[:, 0], coords[:, 1], alpha=0.3, s=10)
-    for label, (x, y) in zip(unique_keys, coords):
-        ax.text(x, y, label, fontsize=9, alpha=0.8)
-    return ax

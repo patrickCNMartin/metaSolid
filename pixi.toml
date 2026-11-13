@@ -1,0 +1,26 @@
+[workspace]
+name = "metasolid"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64"]
+
+# System tools only. Every Python package is in pyproject.toml. Ollama is installed on the host.
+[dependencies]
+python = "3.13.*"
+git = "*"
+pandoc = ">=3.1.2"
+typst = "*"
+
+[pypi-dependencies]
+metasolid = { path = ".", editable = true }
+
+[feature.dev.pypi-dependencies]
+metasolid = { path = ".", editable = true, extras = ["dev"] }
+
+[environments]
+default = { features = [], solve-group = "main" }
+dev = { features = ["dev"], solve-group = "main" }
+
+[tasks]
+harmonize = "python -m metasolid"
+test = "pytest"
+lint = "ruff check . && ruff format --check ."

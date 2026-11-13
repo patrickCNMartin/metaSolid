@@ -1,29 +1,56 @@
-name: MetaSolid-unit-test
+name: tests
 
+# The uv jobs are the contract. The nix job checks the flake, and is the one job with
+# pandoc and typst, so it is where the PDF test runs.
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   test:
+    name: pytest
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+          python-version: "3.13"
+      # --locked fails if uv.lock no longer matches pyproject.toml.
+      - run: uv sync --extra dev --locked
+      - run: uv run pytest --cov=metasolid --cov-report=term-missing
 
-      - name: Set up Python 3.13
-        run: uv python install 3.13
+  lint:
+    name: ruff + detect-secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - run: uv sync --extra dev --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      # Tracked files only, the same set the pre-push hook sees.
+      - name: detect-secrets
+        run: |
+          git ls-files -z ':!:security/.secrets.baseline' \
+            | xargs -0 uv run detect-secrets-hook --baseline security/.secrets.baseline
 
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Run tests
-        run: uv run pytest tests/ -v --cov=src --cov-report=term-missing
+  nix:
+    name: flake health
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@v22
+      - run: nix develop --command uv run pytest -q

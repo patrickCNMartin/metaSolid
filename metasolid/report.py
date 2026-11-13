@@ -31,8 +31,18 @@ def check_pdf_tools() -> None:
 
 def render_pdf(markdown: Path, pdf: Path) -> None:
     """Markdown to PDF; pandoc runs beside the markdown so its image paths resolve."""
+    # typst's bundled font: unset, older pandoc templates hand typst an empty font
+    # list, which typst >= 0.15 refuses. It also needs no system fonts in a container.
     subprocess.run(
-        ["pandoc", markdown.name, "--pdf-engine=typst", "-o", str(pdf.resolve())],
+        [
+            "pandoc",
+            markdown.name,
+            "--pdf-engine=typst",
+            "-V",
+            "mainfont=Libertinus Serif",
+            "-o",
+            str(pdf.resolve()),
+        ],
         cwd=markdown.parent,
         check=True,
     )

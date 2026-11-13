@@ -1,15 +1,17 @@
 default_stages: [pre-push]
 repos:
-  # Ruff - linting and formatting
+  # rev must match the ruff pin in pyproject.toml, or the hook and CI reformat each other.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.9
+    rev: v0.15.22
     hooks:
-      - id: ruff                  
-        args: ['--fix']           
+      - id: ruff-check
+        args: ['--fix']
       - id: ruff-format
-  # detect-secrets - secret scanning
+
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
       - id: detect-secrets
         args: ['--baseline', 'security/.secrets.baseline']
+        # The baseline stores hashed findings; scanning it re-reports them.
+        exclude: ^security/\.secrets\.baseline$

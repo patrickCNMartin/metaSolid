@@ -9,7 +9,6 @@ dependencies = [
     "numpy",
     "scipy",
     "scikit-learn",
-    "umap-learn",
     "matplotlib",
     "pyyaml",
     "requests",
@@ -18,7 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "ruff",
+    "ruff==0.15.22",  # same as the pre-commit rev
     "detect-secrets",
     "pre-commit",
     "pytest",

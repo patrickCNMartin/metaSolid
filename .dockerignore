@@ -1,0 +1,21 @@
+# The build context is the source and the lock files. env/, data/ and iLab/ never reach an image.
+.git
+.github
+.claude
+.venv
+.pixi
+env
+data
+iLab
+tests
+docs
+dev-skills
+security
+ollama-models
+result
+**/__pycache__
+**/*.pyc
+*.md
+flake.*
+oci.nix
+pixi.*
