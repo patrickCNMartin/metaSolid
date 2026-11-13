@@ -4,49 +4,42 @@ version = "0.1.0"
 description = "Meta Data Consolidation - IDS - METASOLID"
 requires-python = ">=3.13"
 
+# The only place a Python package is named. oci.nix restates this list by hand.
 dependencies = [
-    # Data
     "numpy",
-    "numba",
     "scipy",
     "scikit-learn",
     "umap-learn",
-    "python-dateutil",
-
-    # Reporting & Figures
     "matplotlib",
-    "python-pptx",
-
-    # LLM/DL
-    # NOTE: no vendor SDKs by design -- all LLM/embedding access goes through
-    # plain `requests` against OpenAI-compatible HTTP endpoints.
-
-    # Utilities
+    "pyyaml",
     "requests",
     "python-dotenv",
 ]
 
 [project.optional-dependencies]
-# Only needed by the exploratory notebooks under src/explore/.
-notebook = [
-    "seaborn",
-]
 dev = [
-    "jupyterlab",
-    "ipython",
-    "ipykernel",
     "ruff",
     "detect-secrets",
     "pre-commit",
     "pytest",
     "pytest-cov",
-    "responses"
+    "responses",
+]
+notebook = [
+    "jupyterlab",
+    "ipykernel",
+    "seaborn",
 ]
 
 [build-system]
-requires = ["setuptools>=65", "wheel", "setuptools-scm>=8"]
+requires = ["setuptools>=65"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["metasolid"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ruff]
 target-version = "py313"

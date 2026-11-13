@@ -1,14 +1,9 @@
-# -----------------------------------------------------------------------------#
-# IMPORT LIBS
-# -----------------------------------------------------------------------------#
+"""Dendrogram + distance heatmap, and a UMAP map of the field names."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import umap
 from scipy.cluster.hierarchy import dendrogram
-
-# -----------------------------------------------------------------------------#
-# FUNCTIONS
-# -----------------------------------------------------------------------------#
 
 
 def plot_dendrogram_and_heatmap(
@@ -22,7 +17,7 @@ def plot_dendrogram_and_heatmap(
     )
     ax_dendro = fig.add_subplot(gs[0, 0])
     ax_heat = fig.add_subplot(gs[1, 0])
-    ax_cbar = fig.add_subplot(gs[0, 1])  # or gs[1,1] — your call
+    ax_cbar = fig.add_subplot(gs[0, 1])
 
     counts = np.zeros(model.children_.shape[0])
     n = len(unique_keys)
