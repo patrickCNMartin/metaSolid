@@ -1,88 +1,139 @@
- # metaSolid
+# metaSolid
 
-**Meta Data Consolidation - IDS - METASOLID**
+Harmonizes metadata field names: the meaning of each field is embedded, similar fields are
+clustered, and an LLM names each cluster. Experimental.
 
-**Summary**: A small toolkit to harmonize and cluster metadata field names using semantic embeddings and hierarchical clustering. It is provider-agnostic and can use local or remote embedding/generation services (e.g., Ollama, OpenLLM, OpenAI).
+## Setup
 
-**Status**: Early-stage, experimental research code.
+Every setup needs [Ollama](https://ollama.com) running on the host:
 
-
-**Features**
-- **Semantic key context**: convert metadata keys to short context sentences for embedding (`add_field_context`).
-- **Embedding-agnostic**: accepts any embedding function that returns numpy vectors (`get_semantic_embeddings`).
-- **Clustering & visualization**: hierarchical clustering of keys and visual outputs (dendrogram + heatmap, UMAP word-cloud).
-- **Exclusion/stripping**: filter out keys that are semantically related to supplied exclusion terms.
-
-**Requirements**
-- Python >= 3.13 (see `pyproject.toml`).
-- Install dependencies from `pyproject.toml` or create a virtual environment.
-
-**Install (recommended)**
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
-# optional dev extras
-pip install -e .[dev]
+```sh
+brew install ollama
+ollama serve & disown
 ```
 
-**Quickstart**
-1. Prepare a JSON metadata file (a list of dicts). Example dataset files are located in the `data/` directory.
-2. (Optional) Create an `env/.env` file to set provider configuration (see Configuration below).
-3. (Optional) If you are using `ollama` locally, run `ollama serve & disown` first.
-4. Run the CLI runner to produce visualization outputs:
+Then one of:
 
-```bash
-python src/metaSolid/run_metaSolid.py --metadata data/fuzzy_ablated_requests.json --output data/
+| environment | enter it | brings |
+|---|---|---|
+| nix | `nix develop` | Python, uv, pandoc, typst, and the dev tools in `.venv` |
+| pixi | `pixi shell -e dev` (`pixi shell` for the runtime only) | Python, pandoc, typst, the dev tools |
+| uv | `uv sync --extra dev` | the Python packages; for `--render_report` also `brew install pandoc typst` |
+| docker | see [Docker](#docker) | the runtime, pandoc and typst |
+
+For Jupyter, in the nix shell or with uv: `uv run --extra notebook jupyter lab`.
+
+## Creating the models
+
+```sh
+ollama pull nomic-embed-text
+
+ollama pull qwen2.5:7b
+ollama create qwen:2.5_7B -f ollama-models/qwen2.5_7B.modelfile
+
+ollama pull gemma4:12b
+ollama create gemma:4_12B -f ollama-models/gemma4_12B.modelfile
+
+ollama ls
 ```
 
-Outputs written to the `--output` directory include:
-- `semantic_clusters.png` — dendrogram and heatmap of clustered keys.
-- `semantic_word_cloud.png` — UMAP-based scatter with labels.
+Put the created name in `GEN_MODEL`. To change a model's settings, edit its modelfile and run
+`ollama create` again.
 
-**Configuration / Environment variables**
-The runner loads environment variables from `env/.env` by default. Common variables:
-- **GEN_PROVIDER**: generation provider (default: `ollama`)
-- **GEN_MODEL**: generation model name (default set in code)
-- **GEN_ENDPOINT / GEN_API_KEY**: optional endpoint and key for generation APIs
-- **EMBED_PROVIDER**: embedding provider (default: `ollama`)
-- **EMBED_MODEL / EMBED_ENDPOINT / EMBED_API_KEY**: embedding settings
-- **SEMANTIC_THRESHOLD**: threshold used for clustering/stripping
-- **EXCLUSION_TERMS**: JSON-list of terms to exclude (example: `["api","url"]`)
+## Configuration
 
-
-**Supported provider keys**
-The project implements lightweight HTTP-based wrapper functions so you can switch providers without vendor SDKs. Supported keys (used by `build_embedder` and `build_generator`) include:
-- `ollama`
-- `llama-cpp` / `vllm`
-- `open-llm` (self-hosted OpenLLM endpoints)
-- `openai`
-
-Check the provider code for exact behavior and headers: [src/providers/embedders.py](src/providers/embedders.py#L1) and [src/providers/generators.py](src/providers/generators.py#L1).
-
-
-
-**Development**
-- Recommended tools: `ruff`, `pre-commit`, and Jupyter for exploratory runs (see `[project.optional-dependencies]` in `pyproject.toml`).
-
-
-**Nix / Reproducible environment**
-- This repository includes Nix flakes (`flake.nix`, `flake.lock`) to provide a reproducible development shell and build environment.
-- Enter the development shell with:
-
-```bash
-nix develop
+```sh
+cp env/.env.example env/.env
 ```
 
-- Inside the Nix shell you can run the same commands listed in this README, for example:
+| variable | sets | default |
+|---|---|---|
+| `EMBED_PROVIDER`, `GEN_PROVIDER` | `ollama`, `llama-cpp`, `vllm`, `open-llm` or `openai` | `ollama` |
+| `EMBED_MODEL` | the embedding model | `nomic-embed-text` |
+| `GEN_MODEL` | the generation model | `qwen:2.5_7B` |
+| `EMBED_ENDPOINT`, `GEN_ENDPOINT` | the full URL of the route; empty uses the provider's default | |
+| `EMBED_API_KEY`, `GEN_API_KEY` | sent as `Authorization: Bearer`, only when set | |
+| `SEMANTIC_THRESHOLD` | the clustering cut-off (cosine distance), and the cut-off for matching onto the target (cosine similarity) | `0.2` |
+| `SEMANTIC_EXCLUSION` | how similar to an exclusion term a field must be to be dropped | `0.5` |
+| `SEMANTIC_EXCLUSION_TERMS` | JSON list of terms; fields close to one are dropped | `[]` |
 
-```bash
-python src/metaSolid/run_metaSolid.py --metadata data/fuzzy_ablated_requests.json --output data/
+## Use
+
+Two input files, each `.json`, `.yaml` or `.yml`:
+
+- `--metadata`: a list of records, one flat dict per record.
+- `--context`: the meaning of each field, one dict per record, in the same order and with the same
+  fields.
+
+```json
+[{"owner.email": "ada@example.org", "state": "new"}]
+```
+```json
+[{"owner.email": "Email of the person who submitted the request.", "state": "Stage of the request."}]
 ```
 
-- Notes for macOS: ensure you have a recent Nix installation with flakes enabled. If flakes are unavailable, use your preferred Python virtual environment instead.
+```sh
+python -m metasolid --metadata requests.json --context context.json --output out/
+python -m metasolid --metadata requests.yaml --context context.yaml --output out/ --render_report
+```
 
+Run it as `nix develop --command uv run python -m metasolid …`, `uv run python -m metasolid …` or
+`pixi run harmonize …`. To try it, use the fixtures:
 
+```sh
+python -m metasolid --metadata tests/fixtures/service_requests.json \
+  --context tests/fixtures/field_context.json --output out/
+```
 
+| output | holds |
+|---|---|
+| `semantic_clusters.png` | dendrogram and distance heatmap of the fields |
+| `harmonized_metadata_fields.json` | one harmonized label per cluster, with its explanation |
+| `hierarchy_metadata_fields.yaml` | the harmonized labels as a YAML hierarchy |
+| `harmonized_metadata.json` | every record after the first, mapped onto the first record's fields |
+| `report.md` | the plots and the harmonized labels |
+| `report.pdf` | with `--render_report` |
 
+## Docker
 
+Build with Docker, or with nix:
+
+```sh
+VERSION=$(python3 -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+docker build --build-arg VERSION=$VERSION -t metasolid:$VERSION .
+```
+```sh
+nix build .#oci && docker load < result
+```
+
+Both are tagged with the version in `pyproject.toml`. In `env/.env`, point `EMBED_ENDPOINT` and
+`GEN_ENDPOINT` at `host.docker.internal` instead of `localhost`, then:
+
+```sh
+docker run --rm --user "$(id -u):$(id -g)" --env-file env/.env -v "$PWD/data:/app/data" \
+  metasolid:0.1.0 --metadata data/requests.json --context data/context.json \
+  --output data/out --render_report
+```
+
+## Tests and lint
+
+```sh
+nix develop --command uv run pytest
+nix develop --command uv run ruff check .
+nix develop --command uv run ruff format --check .
+```
+
+Or `pixi run -e dev test` and `pixi run -e dev lint`. The PDF test is skipped without pandoc and
+typst.
+
+## Contributing
+
+- Coding agents read [AGENT.md](AGENT.md) first.
+- Write code with [ponytail](https://github.com/dietrichgebert/ponytail): the shortest working
+  change, functions rather than classes.
+- Install the pre-push hooks (ruff, detect-secrets): `pre-commit install --hook-type pre-push`.
+- Fixtures in `tests/fixtures/` are made up; every email and URL stays on `example.org`.
+- Decisions taken with a coding agent are logged by the agent with
+  [dev-skills/logging](dev-skills/logging/SKILL.md), one file per decision in `docs/decisions/`.
+  Read them with `sh dev-skills/logging/log.sh`. Decisions you take yourself go in the pull
+  request description.
