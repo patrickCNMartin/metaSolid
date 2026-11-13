@@ -25,6 +25,9 @@ secrets.json
 
 data/
 
+# iLab tooling and its synthetic data stay local, never committed.
+iLab/
+
 # ==========================================
 # PYTHON
 # ==========================================
