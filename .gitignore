@@ -1,109 +1,44 @@
+# metaSolid: a denylist. New files are tracked unless a rule below says otherwise.
+# Leaked credentials are caught by detect-secrets, not by this file.
 
+# --- Secrets -----------------------------------------------------------------
 .env
 .env.*
 *.env
-env/*
+!env/.env.example
 
-# Key material and credential dumps, wherever they land.
-*.pem
-*.key
-*.p12
-*.pfx
-*.keystore
-*.jks
-id_rsa
-id_ed25519
-*.credentials
-credentials.json
-secrets.json
-*_secret*
-*_token*
-
-# ==========================================
-# RESEARCH DATA
-# ==========================================
-
+# --- Data and local tooling --------------------------------------------------
 data/
-
 # iLab tooling and its synthetic data stay local, never committed.
 iLab/
+*.log
 
-# ==========================================
-# PYTHON
-# ==========================================
+# --- Agent -------------------------------------------------------------------
+.claude/
+
+# --- Python ------------------------------------------------------------------
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-build/
-dist/
 *.egg-info/
-.eggs/
-
-# ==========================================
-# VIRTUAL ENVIRONMENTS
-# ==========================================
 .venv/
-venv/
-
-
-# ==========================================
-# TEST, COVERAGE & LINT CACHES
-# ==========================================
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
 .coverage
 .coverage.*
 htmlcov/
-coverage.xml
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
 
-# ==========================================
-# NIX
-# ==========================================
+# --- Environments ------------------------------------------------------------
+.pixi/
 result
 result-*
-.nix-kernel-stamp
-.direnv/
 
-# ==========================================
-# NOTEBOOKS
-# ==========================================
+# --- Notebooks ---------------------------------------------------------------
 *.ipynb
 .ipynb_checkpoints/
 
-# ==========================================
-# LOGS & RUNTIME OUTPUT
-# ==========================================
-ollama-models/logs/
-*.log
-
-# ==========================================
-# EDITOR & OS
-# ==========================================
+# --- OS and editors ----------------------------------------------------------
 .DS_Store
-Thumbs.db
 .idea/
 .vscode/
-*.swp
-
-# ==========================================
-# SCRATCH CODE
-# ==========================================
-src/explore/
-
-# ==========================================
-# LOCAL WORKING NOTES
-# ==========================================
-
-CLAUDE.md
-
-
-# ==========================================
-# RE-INCLUDES -- KEEP THIS SECTION LAST
-# ==========================================
-# env/.env.example -- the committed template, no real values.
-!env/.env.example
-# The audited detect-secrets baseline records findings, not secrets.
-!security/.secrets.baseline
